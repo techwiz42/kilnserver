@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>Job "{{ job.comment }}"</h2>
+<p>
+  <table>
+  <tr>
+    <th>Target</th>
+    <th>Rate</th>
+    <th>Dwell</th>
+    <th>Threshold</th>
+  </tr>
+  {% for step in job_steps %}
+  <tr>
+    <td>{{ step.target }}&deg;F</td>
+    <td>{{ step.rate }} min</td>
+    <td>{{ step.dwell }} min</td>
+    <td>{{ step.threshold }}&deg;F</td>
+  </tr>
+  {% endfor %}
+  </table>
+</p>
+<ul>
+<li><a href="{{ url_for('show_jobs') }}">Back to job list</a></li>
+<li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete this job</a></li>
+</ul>
+{% endblock %}
