@@ -1,60 +1,8 @@
-# all the imports
-import os
-import sqlite3
 import time
+from kilnserver import app
+from kilnserver import tasks
+from kilnserver.db import connect_db, init_db, get_db
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
-from celery import Celery
-import subprocess
-from subprocess import PIPE
-
-
-app = Flask(__name__)
-app.config.from_object(__name__)
-
-# Load default config and override config from an environment variable
-app.config.update(dict(
-  DATABASE=os.path.join(app.root_path, 'kilnserver.db'),
-  DEBUG=True,
-  SECRET_KEY='099d77359a8c14d35c440b1589570f99',
-  CELERY_BROKER_URL='redis://localhost:6379/0'
-))
-app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
-
-def make_celery(app):
-    app.logger.debug("app.import_name=%s" % app.import_name)
-    celery = Celery(app.import_name, broker=app.config['CELERY_BROKER_URL'])
-    celery.conf.update(app.config)
-    TaskBase = celery.Task
-    class ContextTask(TaskBase):
-        abstract = True
-        def __call__(self, *args, **kwargs):
-            with app.app_context():
-                return TaskBase.__call__(self, *args, **kwargs)
-    celery.Task = ContextTask
-    return celery
-
-celery = make_celery(app)
-
-def connect_db():
-  """Connects to the specific database."""
-  rv = sqlite3.connect(app.config['DATABASE'])
-  rv.row_factory = sqlite3.Row
-  return rv
-
-def init_db():
-  with app.app_context():
-    db = get_db()
-    with app.open_resource('schema.sql', mode='r') as f:
-      db.cursor().executescript(f.read())
-    db.commit()
-
-def get_db():
-  """Opens a new database connection if there is none yet for the
-  current application context.
-  """
-  if not hasattr(g, 'sqlite_db'):
-    g.sqlite_db = connect_db()
-  return g.sqlite_db
 
 @app.teardown_appcontext
 def close_db(error):
@@ -136,17 +84,8 @@ def start_job(job_id):
   started = False
   if request.method == 'POST':
     # start the job
-    result = task_start_job.delay(job_id)
+    result = tasks.task_start_job.delay(job_id)
     flash("Job %s started." % job['comment'])
     started = True
   return render_template('start_job.html', job=job, started=started)
 
-@celery.task()
-def task_start_job(job_id):
-  args = ['/bin/sleep', '120']
-  p = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
-  out, err = p.communicate()
-  app.logger.debug("start_job: subprocess output: %s" % [out])
-
-if __name__ == '__main__':
-  app.run()
