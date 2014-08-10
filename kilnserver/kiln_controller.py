@@ -1,13 +1,13 @@
-import os,sys,time,math, string,numpy
+from kilnserver import app
+import os, sys, time, math, string, numpy
 from max31855 import *  #must be in same directory as this code
 import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
 from numpy import column_stack, savetxt
-from math import round, abs, floor, sqrt
 
 class KilnController:
   def __init__(self, segments):
     self.segments = segments
-    build_temp_table()
+    self.build_temp_table()
     #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
     self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
     GPIO.setmode(GPIO.BOARD)
@@ -19,7 +19,7 @@ class KilnController:
   def start(self):
     self.start = time.time()
     self.running = True
-    run()
+    self.run()
 
   def stop(self):
     self.running = False
@@ -32,34 +32,36 @@ class KilnController:
 
   # No public methods below
   def read_temp(self):
-    thermocouple = MAX31855(24,23,22, 'f')
+    thermocouple = MAX31855(24,23,22, 'f', board=GPIO.BOARD)
     temp = thermocouple.get()
-    return temp
+    return float(temp)
 
   def duration(self):
     minutes = 0
-    start_temp = read_temp()
+    start_temp = self.read_temp()
     prev_target = 0
     for segment in self.segments:
-      ramp = abs(segment['target'] - prev_target) / (segment['rate'] / 60)
+      ramp = abs(segment['target'] - prev_target) / (segment['rate'] / 60.0)
       minutes += ramp + segment['dwell']
       prev_target = segment['target']
     return round(minutes)
 
   def build_temp_table(self):
-    start_temp = read_temp()
+    start_temp = self.read_temp()
+    app.logger.debug("start_temp is %s" % (repr(start_temp)))
     previous_target = start_temp
     self.temp_table = [start_temp]
 
     for segment in self.segments:
-      rate_mins = segment['rate'] / 60
+      app.logger.debug("segment: rate: %s target: %s dwell: %s" % (repr(segment['rate']),repr(segment['target']),repr(segment['dwell'])))
+      rate_mins = segment['rate'] / 60.0
       ramp = int(round(abs((segment['target'] - previous_target) / rate_mins)))
       j = 1
       t = 0
       for m in range(t, t + int(ramp)):
         self.temp_table.append((segment['target'] - previous_target) * j / ramp + previous_target)
         j += 1
-      for m in range(t + int(ramp), t + int(ramp + dwell)):
+      for m in range(t + int(ramp), t + int(ramp + segment['dwell'])):
         self.temp_table.append(segment['target'])
         j += 1
       t = round(t + ramp + segment['dwell'])
@@ -67,7 +69,7 @@ class KilnController:
 
   def set_point(self):
     seconds = time.time() - self.start
-    minute = int(floor(seconds / 60))
+    minute = int(math.floor(seconds / 60))
     dT = (self.temp_table[minute+1] - self.temp_table[minute])
     dt = seconds / 60 - minute
     return self.temp_table[minute] + dT * dt
@@ -94,14 +96,14 @@ class KilnController:
 
     # Data collection for graphing
     runtime = 0   # minutes
-    tempdata = [read_temp()]
-    setdata = [set_point()]
+    tempdata = [self.read_temp()]
+    setdata = [self.set_point()]
     timedata = [runtime]
 
-    while runtime < duration() and self.running:
+    while runtime < self.duration() and self.running:
       # find error and delta-error
-      tmeas = read_temp()   # degrees F
-      setpoint = set_point()  # degrees F
+      tmeas = self.read_temp()   # degrees F
+      setpoint = self.set_point()  # degrees F
       e = tmeas - setpoint # present error degrees F
       d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
       print "e = ",'%.3f' % e, "  d = " '%.3f' % d
@@ -147,27 +149,27 @@ class KilnController:
       #defuzzify using an RMS calculation.  There are four values of heating,
       #hhhh,hhh, hh,h, and one value of cooling z = 0.  There are 10 rules
       #that have non-zero heating values, but all 25 must be evaluated in denominator.                                     
-      num = hhhh*sqrt(m[0,0]**2) + hhh*sqrt(m[0,1]**2 +m[1,0]**2) +\
-        hh*sqrt(m[0,2]**2 + m[2,0]**2 + m[1,1]**2) + \
-        h*sqrt(m[0,3]**2 + m[3,0]**2 + m[1,2]**2 + m[2,1]**2)
+      num = hhhh*math.sqrt(m[0,0]**2) + hhh*math.sqrt(m[0,1]**2 +m[1,0]**2) +\
+        hh*math.sqrt(m[0,2]**2 + m[2,0]**2 + m[1,1]**2) + \
+        h*math.sqrt(m[0,3]**2 + m[3,0]**2 + m[1,2]**2 + m[2,1]**2)
       
       densq = 0
       for i in range(0,4):    #the sum of all squares, unweighted
         for j in range(0,4):
            densq = densq + m[i,j]**2
-      den = sqrt(densq)
+      den = math.sqrt(densq)
 
       if den != 0: result = num/den   # should be between 0 and 1
       if den == 0: result = 0
       if den == 0: print("denominator = 0")
       print" num = ",'%.5f' % num,"den = ",'%.5f' % den,"output = ",'%.5f' % result
 
-      kiln_on()
+      self.kiln_on()
       time.sleep(proportion*interval*result)   # wait for a number of seconds
-      kiln_off()
+      self.kiln_off()
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
-      runtime = (time.time() - start)/60      #present time since start, minutes
+      runtime = (time.time() - self.start)/60      #present time since start, minutes
       print "runtime = ", runtime, " minutes"
       print " " 
 
@@ -180,7 +182,7 @@ class KilnController:
 # n = len(tempdata)
 # squares = [0]*n
 # for i in range(0,n): squares[i] = (tempdata[i]-setdata[i])**2
-# temprms = sqrt(sum(squares)/n)
+# temprms = math.sqrt(sum(squares)/n)
 # print "rms temperature error = ", temprms, " degrees F"
 
 
