@@ -1,7 +1,6 @@
 import time
 from kilnserver import app
-from kilnserver import tasks
-from kilnserver.db import connect_db, init_db, get_db
+from kilnserver.model import db
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 
 @app.teardown_appcontext
@@ -12,7 +11,6 @@ def close_db(error):
 
 @app.route('/')
 def show_jobs():
-  db = get_db()
   cur = db.execute('''SELECT j.id, j.comment, count(js.id) AS step_count
                         FROM jobs j
                    LEFT JOIN job_steps js ON js.job_id = j.id
@@ -37,7 +35,6 @@ def parse_job(job_data):
     
 @app.route('/job/create', methods=['POST'])
 def job_create():
-  db = get_db()
   cursor = db.cursor()
   cursor.execute('''INSERT INTO jobs (comment,created) VALUES (?,?)''', [request.form['comment'],int(time.time())])
   db.commit()
@@ -51,7 +48,6 @@ def job_create():
 
 @app.route('/job/<int:job_id>/steps')
 def show_job_steps(job_id):
-  db = get_db()
   cursor = db.cursor()
   cursor.execute('select id,comment from jobs where id=?', [job_id])
   job = cursor.fetchone()
@@ -61,7 +57,6 @@ def show_job_steps(job_id):
 
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
 def delete_job(job_id):
-  db = get_db()
   cursor = db.cursor()
   cursor.execute('select id,comment from jobs where id=?', [job_id])
   job = cursor.fetchone()
@@ -77,14 +72,13 @@ def delete_job(job_id):
 
 @app.route('/job/<int:job_id>/start', methods=['GET', 'POST'])
 def start_job(job_id):
-  db = get_db()
   cursor = db.cursor()
   cursor.execute('select id,comment from jobs where id=?', [job_id])
   job = cursor.fetchone()
   started = False
   if request.method == 'POST':
     # start the job
-    result = tasks.task_start_job.delay(job_id)
+    #result = tasks.task_start_job.delay(job_id)
     flash("Job %s started." % job['comment'])
     started = True
   return render_template('start_job.html', job=job, started=started)
