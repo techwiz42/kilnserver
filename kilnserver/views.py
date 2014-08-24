@@ -1,22 +1,11 @@
 import time
 from kilnserver import app
-from kilnserver.model import db
+from kilnserver.model import db, Job, JobStep
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
-
-@app.teardown_appcontext
-def close_db(error):
-  """Closes the database again at the end of the request."""
-  if hasattr(g, 'sqlite_db'):
-      g.sqlite_db.close()
 
 @app.route('/')
 def show_jobs():
-  cur = db.execute('''SELECT j.id, j.comment, count(js.id) AS step_count
-                        FROM jobs j
-                   LEFT JOIN job_steps js ON js.job_id = j.id
-                    GROUP BY j.id, j.comment
-                    ORDER BY j.id DESC''')
-  jobs = cur.fetchall()
+  jobs = Job.query.all()
   return render_template('show_jobs.html', jobs=jobs)
 
 def parse_job(job_data):
