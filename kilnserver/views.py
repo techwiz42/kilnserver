@@ -37,38 +37,28 @@ def job_create():
 
 @app.route('/job/<int:job_id>/steps')
 def show_job_steps(job_id):
-  cursor = db.cursor()
-  cursor.execute('select id,comment from jobs where id=?', [job_id])
-  job = cursor.fetchone()
-  cursor.execute('''SELECT * FROM job_steps js WHERE js.job_id=?''', [job_id])
-  job_steps = cursor.fetchall()
+  job = Job.query.filter_by(id=job_id).first()
+  job_steps = JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps)
 
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
 def delete_job(job_id):
-  cursor = db.cursor()
-  cursor.execute('select id,comment from jobs where id=?', [job_id])
-  job = cursor.fetchone()
+  job = Job.query.filter_by(id=job_id).first()
   deleted = False
   if request.method == 'POST':
-    # perform the delete
-    cursor.execute('''DELETE FROM job_steps WHERE job_id=?''', [job_id])
-    cursor.execute('''DELETE FROM jobs WHERE id=?''', [job_id])
-    db.commit()
-    flash("Job %s deleted." % job['comment'])
+    flash("Job %s deleted." % job.comment)
+    db.session.delete(job)
+    db.session.commit()
     deleted = True
   return render_template('delete_job.html', job=job, deleted=deleted)
 
 @app.route('/job/<int:job_id>/start', methods=['GET', 'POST'])
 def start_job(job_id):
-  cursor = db.cursor()
-  cursor.execute('select id,comment from jobs where id=?', [job_id])
-  job = cursor.fetchone()
+  job = Job.query.filter_by(id=job_id).first()
   started = False
   if request.method == 'POST':
-    # start the job
-    #result = tasks.task_start_job.delay(job_id)
-    flash("Job %s started." % job['comment'])
+    # TODO: implement starting the job
+    flash("Job %s started." % job.comment)
     started = True
   return render_template('start_job.html', job=job, started=started)
 

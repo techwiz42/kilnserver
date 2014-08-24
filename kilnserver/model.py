@@ -9,7 +9,7 @@ class Job(db.Model):
   comment = db.Column(db.Text)
   created = db.Column(db.DateTime)
   modified = db.Column(db.DateTime)
-  steps = db.relationship('JobStep')
+  steps = db.relationship('JobStep', backref='job')
 
   def __init__(self, comment, created, modified):
     self.comment = comment
@@ -29,11 +29,12 @@ class JobStep(db.Model):
   dwell = db.Column(db.Integer)
   threshold = db.Column(db.Integer)
 
-  def __init__(self, target, rate, dwell, threshold):
-    self.target = db.Column(db.Integer)
-    self.rate = db.Column(db.Integer)
-    self.dwell = db.Column(db.Integer)
-    self.threshold = db.Column(db.Integer)
+  def __init__(self, job, target, rate, dwell, threshold):
+    self.job = job
+    self.target = target
+    self.rate = rate
+    self.dwell = dwell
+    self.threshold = threshold
 
   def __repr__(self):
     return '<JobStep %r target=%r rate=%r dwell=%r threshold=%r>' % (self.id, self.target, self.rate, self.dwell, self.threshold)
