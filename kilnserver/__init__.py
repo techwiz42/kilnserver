@@ -2,6 +2,7 @@
 import os
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
 
@@ -13,5 +14,7 @@ app.config.update(dict(
   CELERY_BROKER_URL='redis://localhost:6379/0'
 ))
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
+
+Bootstrap(app)
 
 import kilnserver.views

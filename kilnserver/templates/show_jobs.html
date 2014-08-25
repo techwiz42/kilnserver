@@ -1,5 +1,17 @@
-{% extends "layout.html" %}
-{% block body %}
+{% extends "bootstrap/base.html" %}
+{% block navbar %}
+<div class="container">
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Kiln Controller</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+<p class="lead">
   <form action="{{ url_for('job_create') }}" method=post class=add-entry>
     <dl>
       <dt>Comment:
@@ -9,11 +21,18 @@
       <dd><input type=submit value=Create>
     </dl>
   </form>
-  <ul class=entries>
-  {% for job in jobs %}
-    <li><a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.comment }}</a> ({{ job.steps|length }}) <a href="{{ url_for('delete_job', job_id=job.id) }}">Delete</a>
-  {% else %}
-    <li><em>No jobs found.</em>
-  {% endfor %}
-  </ul>
+</div>
+</p>
+
+<div class="container">
+  <p>
+    <ul class=entries>
+    {% for job in jobs %}
+      <li><a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.comment }}</a> ({{ job.steps|length }}) <a href="{{ url_for('delete_job', job_id=job.id) }}">Delete</a>
+    {% else %}
+      <li><em>No jobs found.</em>
+    {% endfor %}
+    </ul>
+  </p>
+</div>
 {% endblock %}
