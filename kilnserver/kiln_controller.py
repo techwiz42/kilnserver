@@ -1,4 +1,5 @@
 from kilnserver import app
+from kilnserver.redis_state import RedisState
 import os, sys, time, math, string, numpy
 from max31855 import *  #must be in same directory as this code
 import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
@@ -16,21 +17,6 @@ class KilnController:
   def __del__(self):
     GPIO.cleanup()
 
-  def start(self):
-    self.start = time.time()
-    self.running = True
-    self.run()
-
-  def stop(self):
-    self.running = False
-
-  def pause(self):
-    pass
-
-  def resume(self):
-    pass
-
-  # No public methods below
   def read_temp(self):
     thermocouple = MAX31855(24,23,22, 'f', board=GPIO.BOARD)
     temp = thermocouple.get()
@@ -96,18 +82,22 @@ class KilnController:
 
     # Data collection for graphing
     runtime = 0   # minutes
+    pausetime = 0   # minutes
     tempdata = [self.read_temp()]
     setdata = [self.set_point()]
     timedata = [runtime]
 
-    while runtime < self.duration() and self.running:
+    rs = RedisState(self.tag)
+    while (runtime - pausetime) < self.duration():
+      # Check run state
+      
       # find error and delta-error
       tmeas = self.read_temp()   # degrees F
       setpoint = self.set_point()  # degrees F
       e = tmeas - setpoint # present error degrees F
       d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
       print "e = ",'%.3f' % e, "  d = " '%.3f' % d
-      print"measured temperature = ", '%.3f' % tmeas, "  setpoint = ", '%.3f' % setpoint
+      print "measured temperature = ", '%.3f' % tmeas, "  setpoint = ", '%.3f' % setpoint
       lasterr = e
 
       tempdata.append(tmeas)   #record data for plotting later

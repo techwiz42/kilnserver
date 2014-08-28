@@ -38,3 +38,7 @@ class JobStep(db.Model):
 
   def __repr__(self):
     return '<JobStep %r target=%r rate=%r dwell=%r threshold=%r>' % (self.id, self.target, self.rate, self.dwell, self.threshold)
+
+  def __getitem__(self, key):
+    if key in self.__dict__:
+      return self.__dict__[key]
