@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>Job Status</h2>
+<p>
+  <table>
+  <tr>
+    <th>Job Name</th>
+    <th>Start Time</th>
+    <th>Last Update</th>
+    <th>Status</th>
+  </tr>
+  {% for running_job in running_jobs %}
+  <tr>
+    <td>{{ job_info[running_job['job_id']]['comment'] }}</td>
+    <td>{{ running_job['start_time'] }}</td>
+    <td>?? min</td>
+    <td>{{ running_job['state'] }}</td>
+  </tr>
+  {% endfor %}
+  </table>
+</p>
+{% endblock %}

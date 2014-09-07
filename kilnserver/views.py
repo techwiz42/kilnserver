@@ -66,3 +66,16 @@ def start_job(job_id):
     started = True
   return render_template('start_job.html', job=job, started=started)
 
+@app.route('/job/status/all', methods=['GET', 'POST'])
+def job_status_all():
+  r = redis.Redis()
+  running_job_keys = r.lrange('running_jobs', 0, -1)
+  running_jobs = list()
+  job_info = dict()
+  for key in running_job_keys:
+    rj = r.hgetall(key)
+    rj['start_time'] = time.ctime(float(rj['start_time']))
+    running_jobs.append(rj)
+    if not rj['job_id'] in job_info:
+      job_info[rj['job_id']] = Job.query.filter_by(id=rj['job_id']).first()
+  return render_template('job_status_all.html', running_jobs=running_jobs, job_info=job_info)
