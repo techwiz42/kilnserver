@@ -2,6 +2,7 @@ import time
 from kilnserver import app
 from kilnserver.model import db, Job, JobStep
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+import redis
 
 @app.route('/')
 def show_jobs():
@@ -57,7 +58,10 @@ def start_job(job_id):
   job = Job.query.filter_by(id=job_id).first()
   started = False
   if request.method == 'POST':
-    # TODO: implement starting the job
+    # TODO: Redis connection should be global
+    # TODO: RedisState should probably handle all of this
+    r = redis.Redis()
+    r.lpush('jobs', job_id)
     flash("Job %s started." % job.comment)
     started = True
   return render_template('start_job.html', job=job, started=started)

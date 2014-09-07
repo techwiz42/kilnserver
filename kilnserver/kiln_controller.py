@@ -1,13 +1,18 @@
-from kilnserver import app
-from kilnserver.redis_state import RedisState
 import os, sys, time, math, string, numpy
+import redis
 from max31855 import *  #must be in same directory as this code
 import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
 from numpy import column_stack, savetxt
+from kilnserver import app
+from kilnserver.model import db, Job, JobStep
+from kilnserver.redis_state import RedisState
+import kilnserver.redis_state as redis_state
 
 class KilnController:
-  def __init__(self, segments):
+  def __init__(self, segments, tag):
     self.segments = segments
+    self.tag = tag
+    self.redis_state = RedisState(self.tag)
     self.build_temp_table()
     #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
     self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
@@ -16,6 +21,9 @@ class KilnController:
 
   def __del__(self):
     GPIO.cleanup()
+
+  def get_run_state(self):
+    return self.redis_state.get()
 
   def read_temp(self):
     thermocouple = MAX31855(24,23,22, 'f', board=GPIO.BOARD)
@@ -82,14 +90,21 @@ class KilnController:
 
     # Data collection for graphing
     runtime = 0   # minutes
-    pausetime = 0   # minutes
+    pausetime = 0   # seconds
     tempdata = [self.read_temp()]
     setdata = [self.set_point()]
     timedata = [runtime]
 
-    rs = RedisState(self.tag)
-    while (runtime - pausetime) < self.duration():
-      # Check run state
+    while (runtime - (pausetime / 60)) < self.duration():
+      run_state = self.get_run_state()
+      if run_state == RedisState.PAUSE:
+        time.sleep(interval)
+        pausetime += interval
+        continue
+      elif run_state == RedisState.STOP:
+        return
+      else:
+        raise RedisState.InvalidStateTransitionError("Unknown run state '%s'" % (run_state))
       
       # find error and delta-error
       tmeas = self.read_temp()   # degrees F
@@ -160,36 +175,32 @@ class KilnController:
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
       runtime = (time.time() - self.start)/60      #present time since start, minutes
-      print "runtime = ", runtime, " minutes"
+      print "runtime = ", runtime, " minutes; pausetime = ", pausetime, " minutes"
       print " " 
 
     #end of while loop
 
+def main():
+  r = redis.Redis()
+  while True:
+    job_id = r.rpop('jobs')
+    if job_id is not None:
+      # Retrieve job data from database
+      job = Job.query.filter_by(id=int(job_id)).first()
+      # Create KilnController object
+      # Mark job as started
+      # TODO: Clean up raw redis interactions into a more sensible RedisState class.
+      start_time = time.time()
+      unique_id = 'job_%s_%d' % (job_id, start_time)
+      r.lpush('running_jobs', unique_id)
+      r.hset(unique_id, 'job_id', job_id)
+      r.hset(unique_id, 'start_time', start_time)
+      rs = RedisState(unique_id)
+      rs.set(redis_state.RUN)
+      kc = KilnController(job.steps, unique_id)
+      kc.run()
+    else:
+      time.sleep(5)
 
-# DataOut = column_stack((timedata, tempdata, setdata))
-# savetxt('output.dat', DataOut, fmt =( '%6.3f','%6.3f', '%6.3f'))
-# 
-# n = len(tempdata)
-# squares = [0]*n
-# for i in range(0,n): squares[i] = (tempdata[i]-setdata[i])**2
-# temprms = math.sqrt(sum(squares)/n)
-# print "rms temperature error = ", temprms, " degrees F"
-
-
-
-   
-
-
-
-
-
-
-        
-
-    
-
-
-        
-
-    
-
+if __name__ == '__main__':
+  main()

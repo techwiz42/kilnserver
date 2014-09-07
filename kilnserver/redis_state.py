@@ -1,12 +1,17 @@
 from kilnserver.model import db, Job, JobStep
 import redis
 
+RUN = 'run'
+PAUSE = 'pause'
+STOP = 'stop'
+FINISH = 'finish'
+
 VALID_STATE_TRANSITIONS = {
-  None: ['run'],
-  'run': ['pause', 'stop', 'finish'],
-  'pause': ['run', 'stop'],
-  'stop': [],
-  'finish': [],
+  None: [RUN],
+  RUN: [PAUSE, STOP, FINISH],
+  PAUSE: [RUN, STOP],
+  STOP: [],
+  FINISH: [],
 }
 
 class InvalidStateTransitionError(Exception):
@@ -15,7 +20,7 @@ class InvalidStateTransitionError(Exception):
 class RedisState:
   # TODO: Build a dict of current states mapped to an array of valid target states.
   def __init__(self, tag, hostname='localhost', port=6379):
-    self.redis = Redis.redis(self.hostname, self.port)
+    self.redis = redis.Redis(hostname, port)
     self.tag = tag
 
   def valid_state_transition(self, current_state, target_state):
@@ -28,7 +33,7 @@ class RedisState:
 
   def set(self, state):
     current_state = self.get()
-    if valid_state_transition(current_state, state):
+    if self.valid_state_transition(current_state, state):
       self.redis.hset(self.tag, 'state', state)
     else:
       raise InvalidStateTransitionError("Invalid state transition: %s -> %s (%s)" % (current_state, state, self.tag))

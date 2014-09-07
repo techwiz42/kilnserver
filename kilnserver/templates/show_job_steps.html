@@ -21,6 +21,7 @@
 </p>
 <ul>
 <li><a href="{{ url_for('show_jobs') }}">Back to job list</a></li>
-<li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete this job</a></li>
+<li><a href="{{ url_for('start_job', job_id=job.id) }}">Start</a></li>
+<li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete</a></li>
 </ul>
 {% endblock %}
