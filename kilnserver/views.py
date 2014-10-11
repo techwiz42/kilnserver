@@ -3,6 +3,7 @@ from kilnserver import app
 from kilnserver.model import db, Job, JobStep
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 import redis
+from datetime import datetime
 
 @app.route('/')
 def show_jobs():
@@ -36,6 +37,13 @@ def job_create():
   flash('Successfully created job "%s" (%d)' % (request.form['comment'], job_id))
   return redirect(url_for('show_jobs'))
 
+@app.route('/job/add')
+def add_job():
+  job = Job('', datetime.now(), datetime.now())
+  db.session.add(job)
+  db.session.commit()
+  return redirect(url_for('show_job_steps', job_id=job.id))
+
 @app.route('/job/<int:job_id>/steps')
 def show_job_steps(job_id):
   job = Job.query.filter_by(id=job_id).first()
@@ -45,6 +53,8 @@ def show_job_steps(job_id):
 @app.route('/job/<int:job_id>/steps/update', methods=['POST'])
 def update_job_steps(job_id):
   job = Job.query.filter_by(id=job_id).first()
+  job.comment = request.form['comment']
+  db.session.add(job)
   for step_id in request.form.getlist('id'):
     target = int(request.form["target[%s]" % step_id])
     rate = int(request.form["rate[%s]" % step_id])
