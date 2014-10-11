@@ -42,6 +42,45 @@ def show_job_steps(job_id):
   job_steps = JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps)
 
+@app.route('/job/<int:job_id>/steps/update', methods=['POST'])
+def update_job_steps(job_id):
+  job = Job.query.filter_by(id=job_id).first()
+  for step_id in request.form.getlist('id'):
+    target = int(request.form["target[%s]" % step_id])
+    rate = int(request.form["rate[%s]" % step_id])
+    dwell = int(request.form["dwell[%s]" % step_id])
+    threshold = int(request.form["threshold[%s]" % step_id])
+    step_record = JobStep.query.filter_by(job_id=job_id, id=int(step_id)).first()
+    if step_record is None:
+      step_record = JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
+    else:
+      step_record.target = target
+      step_record.rate = rate
+      step_record.dwell = dwell
+      step_record.threshold = threshold
+    db.session.add(step_record)
+  db.session.commit()
+  flash("Job %s updated" % job.comment)
+  return redirect(url_for('show_job_steps', job_id=job.id))
+
+@app.route('/job/<int:job_id>/steps/add', methods=['GET'])
+def add_job_step(job_id):
+  job = Job.query.filter_by(id=job_id).first()
+  step = JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
+  db.session.add(step)
+  db.session.commit()
+  flash("Job step added.")
+  return redirect(url_for('show_job_steps', job_id=job_id))
+
+@app.route('/job/<int:job_id>/steps/delete/<int:step_id>', methods=['GET'])
+def delete_job_step(job_id, step_id):
+  job = Job.query.filter_by(id=job_id).first()
+  step = JobStep.query.filter_by(job_id=job_id, id=step_id).first()
+  flash("Job step %d from job %s deleted." % (step_id, job.comment))
+  db.session.delete(step)
+  db.session.commit()
+  return redirect(url_for('show_job_steps', job_id=job_id))
+
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
 def delete_job(job_id):
   job = Job.query.filter_by(id=job_id).first()
