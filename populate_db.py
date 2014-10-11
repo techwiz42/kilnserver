@@ -1,8 +1,9 @@
 from kilnserver import app
 from kilnserver.model import db, Job, JobStep
 from datetime import datetime
+
 def add_demo_job():
-  j = Job('Another', datetime.now(), datetime.now()) 
+  j = Job('Demo Job', datetime.now(), datetime.now()) 
   db.session.add(j)
   js = JobStep(j, 500, 15, 30, 505)
   db.session.add(js)
