@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
 from numpy import column_stack, savetxt
 from kilnserver import app
 from kilnserver.model import db, Job, JobStep
-from kilnserver.redis_state import RedisState
+from kilnserver.redis_state import RedisState, RUN, STOP, PAUSE, FINISH, InvalidStateTransitionError
 import kilnserver.redis_state as redis_state
 
 class KilnController:
@@ -16,6 +16,7 @@ class KilnController:
     self.build_temp_table()
     #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
     self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
+    GPIO.cleanup() # just in case
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(self.gpio_pin, GPIO.OUT, initial=GPIO.LOW)  #HIGH is on, LOW is off
 
@@ -75,6 +76,7 @@ class KilnController:
     GPIO.output(self.gpio_pin, GPIO.LOW)
 
   def run(self):
+    self.start = time.time()
     m = numpy.empty((5,5),dtype=float)*0    # degree of membership matrix
 
     interval = 5  #interval between updates, seconds
@@ -97,14 +99,16 @@ class KilnController:
 
     while (runtime - (pausetime / 60)) < self.duration():
       run_state = self.get_run_state()
-      if run_state == RedisState.PAUSE:
+      if run_state == PAUSE:
         time.sleep(interval)
         pausetime += interval
         continue
-      elif run_state == RedisState.STOP:
+      elif run_state == STOP:
         return
+      elif run_state == RUN:
+        pass
       else:
-        raise RedisState.InvalidStateTransitionError("Unknown run state '%s'" % (run_state))
+        raise InvalidStateTransitionError("Unknown run state '%s'" % (run_state))
       
       # find error and delta-error
       tmeas = self.read_temp()   # degrees F
@@ -175,7 +179,7 @@ class KilnController:
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
       runtime = (time.time() - self.start)/60      #present time since start, minutes
-      print "runtime = ", runtime, " minutes; pausetime = ", pausetime, " minutes"
+      print "runtime = ", runtime, " minutes; pausetime = ", (pausetime/60), " minutes"
       print " " 
 
     #end of while loop
@@ -199,6 +203,8 @@ def main():
       rs.set(redis_state.RUN)
       kc = KilnController(job.steps, unique_id)
       kc.run()
+      r.delete('running_jobs')
+      r.delete(unique_id)
     else:
       time.sleep(5)
 
