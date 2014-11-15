@@ -1,18 +1,18 @@
-import os, sys, time, math, string, numpy
-import redis
+import os, sys, socket, time, math, string, numpy
 from max31855 import *  #must be in same directory as this code
 import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
 from numpy import column_stack, savetxt
 from kilnserver import app
 from kilnserver.model import db, Job, JobStep
-from kilnserver.redis_state import RedisState, RUN, STOP, PAUSE, FINISH, InvalidStateTransitionError
-import kilnserver.redis_state as redis_state
+
+RUN = 'RUN'
+PAUSE = 'PAUSE'
+STOP = 'STOP'
 
 class KilnController:
-  def __init__(self, segments, tag):
+  def __init__(self, segments, conn):
+    self.conn = conn
     self.segments = segments
-    self.tag = tag
-    self.redis_state = RedisState(self.tag)
     self.build_temp_table()
     #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
     self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
@@ -24,7 +24,8 @@ class KilnController:
     GPIO.cleanup()
 
   def get_run_state(self):
-    return self.redis_state.get()
+    # XXX: check for commands on unix socket
+    return RUN
 
   def read_temp(self):
     thermocouple = MAX31855(24,23,22, 'f', board=GPIO.BOARD)
@@ -184,29 +185,45 @@ class KilnController:
 
     #end of while loop
 
+
 def main():
-  r = redis.Redis()
+  sock_path = '/tmp/kiln_controller'
+  # delete stale socket, if it exists
+  try:
+    os.unlink(sock_path)
+  except OSError:
+    if os.path.exists(sock_path):
+      raise
+  # open a unix domain socket
+  sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+  sock.bind(sock_path)
+  sock.listen(1)
   while True:
-    job_id = r.rpop('jobs')
-    if job_id is not None:
-      # Retrieve job data from database
-      job = Job.query.filter_by(id=int(job_id)).first()
-      # Create KilnController object
-      # Mark job as started
-      # TODO: Clean up raw redis interactions into a more sensible RedisState class.
-      start_time = time.time()
-      unique_id = 'job_%s_%d' % (job_id, start_time)
-      r.lpush('running_jobs', unique_id)
-      r.hset(unique_id, 'job_id', job_id)
-      r.hset(unique_id, 'start_time', start_time)
-      rs = RedisState(unique_id)
-      rs.set(redis_state.RUN)
-      kc = KilnController(job.steps, unique_id)
-      kc.run()
-      r.delete('running_jobs')
-      r.delete(unique_id)
-    else:
-      time.sleep(5)
+    try:
+      conn, client_addr = sock.accept()
+      print "connection from", client_addr
+      while True:
+        data = conn.recv(128)
+        if data:
+          # parse the command
+          command = map(lambda y: y.upper(), map(lambda x: x.strip(), data.split(' ')))
+          print ' '.join(command)
+          if command[0] == 'PING':
+            conn.sendall("PONG\n")
+          elif command[0] == 'START':
+            # start a job
+            job_id = command[1]
+            job = Job.query.filter_by(id=int(job_id)).first()
+            # TODO: Add failure handling code
+            conn.sendall("STARTED %s\n" % job_id)
+            kc = KilnController(job.steps, conn)
+            kc.run()
+        else:
+          break
+    finally:
+      conn.close()
+      print 'connection closed'
+
 
 if __name__ == '__main__':
   main()
