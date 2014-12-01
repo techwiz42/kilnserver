@@ -13,6 +13,7 @@ class KilnController:
   def __init__(self, segments, conn):
     self.conn = conn
     self.segments = segments
+    self.run_state = None
     self.build_temp_table()
     #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
     self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
@@ -23,9 +24,14 @@ class KilnController:
   def __del__(self):
     GPIO.cleanup()
 
-  def get_run_state(self):
-    # XXX: check for commands on unix socket
-    return RUN
+  def pause(self):
+    self.run_state = PAUSE
+
+  def resume(self):
+    self.run_state = RUN
+
+  def stop(self):
+    self.run_state = STOP
 
   def read_temp(self):
     thermocouple = MAX31855(24,23,22, 'f', board=GPIO.BOARD)
@@ -77,6 +83,7 @@ class KilnController:
     GPIO.output(self.gpio_pin, GPIO.LOW)
 
   def run(self):
+    self.run_state = RUN
     self.start = time.time()
     m = numpy.empty((5,5),dtype=float)*0    # degree of membership matrix
 
@@ -99,17 +106,17 @@ class KilnController:
     timedata = [runtime]
 
     while (runtime - (pausetime / 60)) < self.duration():
-      run_state = self.get_run_state()
-      if run_state == PAUSE:
+      # Check run state
+      if self.run_state == PAUSE:
         time.sleep(interval)
         pausetime += interval
         continue
-      elif run_state == STOP:
+      elif self.run_state == STOP:
         return
-      elif run_state == RUN:
+      elif self.run_state == RUN:
         pass
       else:
-        raise InvalidStateTransitionError("Unknown run state '%s'" % (run_state))
+        raise "Unknown run state '%s'" % (run_state)
       
       # find error and delta-error
       tmeas = self.read_temp()   # degrees F
@@ -185,45 +192,66 @@ class KilnController:
 
     #end of while loop
 
-
-def main():
-  sock_path = '/tmp/kiln_controller'
-  # delete stale socket, if it exists
-  try:
-    os.unlink(sock_path)
-  except OSError:
-    if os.path.exists(sock_path):
-      raise
-  # open a unix domain socket
-  sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-  sock.bind(sock_path)
-  sock.listen(1)
-  while True:
+class KilnCommandProcessor():
+  def __init__(self):
+    self.sock_path = '/tmp/kiln_controller'
+    # delete stale socket, if it exists
     try:
-      conn, client_addr = sock.accept()
-      print "connection from", client_addr
-      while True:
-        data = conn.recv(128)
-        if data:
-          # parse the command
-          command = map(lambda y: y.upper(), map(lambda x: x.strip(), data.split(' ')))
-          print ' '.join(command)
-          if command[0] == 'PING':
-            conn.sendall("PONG\n")
-          elif command[0] == 'START':
-            # start a job
-            job_id = command[1]
-            job = Job.query.filter_by(id=int(job_id)).first()
-            # TODO: Add failure handling code
-            conn.sendall("STARTED %s\n" % job_id)
-            kc = KilnController(job.steps, conn)
-            kc.run()
-        else:
-          break
-    finally:
-      conn.close()
-      print 'connection closed'
+      os.unlink(sock_path)
+    except OSError:
+      if os.path.exists(sock_path):
+        raise
+    # open a unix domain socket
+    self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    self.sock.bind(sock_path)
 
+    self.kiln_controller = None
+    self.kiln_controller_thread = None
+
+  def socket_loop(self):
+    self.sock.listen(1)
+    while True:
+      try:
+        conn, client_addr = self.sock.accept()
+        print "connection from", client_addr
+        while True:
+          data = conn.recv(128)
+          if data:
+            # parse the command
+            command = map(lambda y: y.upper(), map(lambda x: x.strip(), data.split(' ')))
+            print ' '.join(command)
+            if command[0] == 'PING':
+              conn.sendall("PONG\n")
+            elif command[0] == 'START':
+              # start a job
+              job_id = command[1]
+              job = Job.query.filter_by(id=int(job_id)).first()
+              # TODO: Add failure handling code
+              self.kiln_controller = KilnController(job.steps, conn)
+              self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
+              self.kiln_controller_thread.start()
+            elif command[0] == 'STOP':
+              if self.kiln_controller is not None:
+                self.kiln_controller.stop()
+                self.kiln_controller.join(30) # 30 sec timeout
+                self.kiln_controller = None
+            elif command[0] == 'PAUSE':
+              if self.kiln_controller is not None:
+                self.kiln_controller.pause()
+            elif command[0] == 'RESUME':
+              if self.kiln_controller is not None:
+                self.kiln_controller.resume()
+          else:
+            break
+      finally:
+        conn.close()
+        print 'connection closed'
+
+  def run(self):
+    self.socket_thread = threading.Thread(target=self.socket_loop)
+    self.socket_thread.start()
+    self.socket_thread.join()
 
 if __name__ == '__main__':
-  main()
+  kcp = KilnCommandProcessor()
+  kcp.run()
