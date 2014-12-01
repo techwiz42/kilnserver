@@ -24,6 +24,9 @@ class KilnController:
   def __del__(self):
     GPIO.cleanup()
 
+  def run_state(self):
+    return self.run_state
+
   def pause(self):
     self.run_state = PAUSE
 
@@ -70,7 +73,6 @@ class KilnController:
       previous_target = segment['target']
 
   def set_point(self):
-    seconds = time.time() - self.start
     minute = int(math.floor(seconds / 60))
     dT = (self.temp_table[minute+1] - self.temp_table[minute])
     dt = seconds / 60 - minute
@@ -205,6 +207,7 @@ class KilnCommandProcessor():
     self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     self.sock.bind(sock_path)
 
+    self.job_id = None
     self.kiln_controller = None
     self.kiln_controller_thread = None
 
@@ -224,8 +227,8 @@ class KilnCommandProcessor():
               conn.sendall("PONG\n")
             elif command[0] == 'START':
               # start a job
-              job_id = command[1]
-              job = Job.query.filter_by(id=int(job_id)).first()
+              self.job_id = command[1]
+              job = Job.query.filter_by(id=int(self.job_id)).first()
               # TODO: Add failure handling code
               self.kiln_controller = KilnController(job.steps, conn)
               self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
@@ -235,12 +238,22 @@ class KilnCommandProcessor():
                 self.kiln_controller.stop()
                 self.kiln_controller.join(30) # 30 sec timeout
                 self.kiln_controller = None
+                self.job_id = None
             elif command[0] == 'PAUSE':
               if self.kiln_controller is not None:
                 self.kiln_controller.pause()
             elif command[0] == 'RESUME':
               if self.kiln_controller is not None:
                 self.kiln_controller.resume()
+            elif command[0] == 'STATUS':
+              state = 'IDLE'
+              if self.kiln_controller is not None:
+                state = self.kiln_controller.run_state()
+              response = ','.join([
+                  ':'.join(['STATE', state]),
+                  ':'.join(['JOB_ID', self.job_id]),
+              ])
+              conn.sendall(response + "\n")
           else:
             break
       finally:
