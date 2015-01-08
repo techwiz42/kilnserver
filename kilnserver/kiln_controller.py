@@ -8,6 +8,7 @@ from kilnserver.model import db, Job, JobStep
 RUN = 'RUN'
 PAUSE = 'PAUSE'
 STOP = 'STOP'
+SOCK_PATH = '/tmp/kiln_controller'
 
 class KilnController:
   def __init__(self, segments, conn):
@@ -194,9 +195,9 @@ class KilnController:
 
     #end of while loop
 
-class KilnCommandProcessor():
+class KilnCommandProcessor:
   def __init__(self):
-    self.sock_path = '/tmp/kiln_controller'
+    self.sock_path = SOCK_PATH
     # delete stale socket, if it exists
     try:
       os.unlink(sock_path)
@@ -250,8 +251,8 @@ class KilnCommandProcessor():
               if self.kiln_controller is not None:
                 state = self.kiln_controller.run_state()
               response = ','.join([
-                  ':'.join(['STATE', state]),
-                  ':'.join(['JOB_ID', self.job_id]),
+                  ' '.join(['STATE', state]),
+                  ' '.join(['JOB_ID', self.job_id]),
               ])
               conn.sendall(response + "\n")
           else:
