@@ -34,4 +34,5 @@ class KilnCommand:
           state = value
         elif key == 'JOB_ID':
           job_id = value
+    return list(state,job_id)
 

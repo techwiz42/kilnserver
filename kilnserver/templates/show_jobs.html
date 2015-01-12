@@ -1,5 +1,20 @@
 {% extends "layout.html" %}
 {% block body %}
+  <p>
+  Kiln state: {{ run_state }}
+  {% if run_state != "IDLE" %}
+    <a href="{{ url_for('stop_job') }}">Stop</a>&nbsp;
+  {% endif %}
+  {% if run_state == "RUN" %}
+    <a href="{{ url_for('pause_job') }}">Pause</a>&nbsp;
+  {% elif run_state == "PAUSE" %}
+    <a href="{{ url_for('pause_job') }}">Resume</a>&nbsp;
+  {% endif %}
+  <br/>
+  {% if running_job_id %}
+  Running job: <a href="{{ url_for('show_job_steps', job_id=running_job.id) }}">{{ running_job.comment }}</a> ({{ running_job.steps|length }})
+  {% endif %}
+  </p>
   <a href="{{ url_for('add_job') }}">Add Job</a>
   <!--
   <form action="{{ url_for('job_create') }}" method=post class=add-entry>

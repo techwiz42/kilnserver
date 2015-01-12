@@ -1,14 +1,19 @@
 import time
 from kilnserver import app
+from kilnserver.kiln_command import KilnCommand
 from kilnserver.model import db, Job, JobStep
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
-import redis
 from datetime import datetime
 
 @app.route('/')
 def show_jobs():
+  kc = KilnCommand()
+  run_state, running_job_id = kc.status()
+  running_job_info = None
+  if running_job_id is not None:
+    running_job_info = Job.query.filter_by(id=running_job_id).first()
   jobs = Job.query.all()
-  return render_template('show_jobs.html', jobs=jobs)
+  return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info)
 
 def parse_job(job_data):
   steps = []
@@ -107,24 +112,29 @@ def start_job(job_id):
   job = Job.query.filter_by(id=job_id).first()
   started = False
   if request.method == 'POST':
-    # TODO: Redis connection should be global
-    # TODO: RedisState should probably handle all of this
-    r = redis.Redis()
-    r.lpush('jobs', job_id)
+    kc = KilnCommand()
+    kc.start(job_id)
     flash("Job %s started." % job.comment)
     started = True
   return render_template('start_job.html', job=job, started=started)
 
-@app.route('/job/status/all', methods=['GET', 'POST'])
-def job_status_all():
-  r = redis.Redis()
-  running_job_keys = r.lrange('running_jobs', 0, -1)
-  running_jobs = list()
-  job_info = dict()
-  for key in running_job_keys:
-    rj = r.hgetall(key)
-    rj['start_time'] = time.ctime(float(rj['start_time']))
-    running_jobs.append(rj)
-    if not rj['job_id'] in job_info:
-      job_info[rj['job_id']] = Job.query.filter_by(id=rj['job_id']).first()
-  return render_template('job_status_all.html', running_jobs=running_jobs, job_info=job_info)
+@app.route('/job/pause')
+def pause_job():
+  kc = KilnCommand()
+  kc.pause()
+  flash("Job paused.")
+  return redirect(url_for('show_jobs'))
+
+@app.route('/job/resume')
+def resume_job():
+  kc = KilnCommand()
+  kc.resume()
+  flash("Job resumed.")
+  return redirect(url_for('show_jobs'))
+
+@app.route('/job/stop')
+def stop_job():
+  kc = KilnCommand()
+  kc.stop()
+  flash("Job stopped.")
+  return redirect(url_for('show_jobs'))
