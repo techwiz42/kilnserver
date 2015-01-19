@@ -10,22 +10,22 @@ class KilnCommand:
     self.sock.close()
 
   def start(self, job_id):
-    sock.sendall("START " + job_id + "\n")
+    self.sock.sendall("START " + str(job_id) + "\n")
 
   def stop(self):
-    sock.sendall("STOP\n")
+    self.sock.sendall("STOP\n")
 
   def pause(self):
-    sock.sendall("PAUSE\n")
+    self.sock.sendall("PAUSE\n")
 
   def resume(self):
-    sock.sendall("RESUME\n")
+    self.sock.sendall("RESUME\n")
 
   def status(self):
     state = None
     job_id = None
-    sock.sendall("STATUS\n")
-    data = sock.recv(128)
+    self.sock.sendall("STATUS\n")
+    data = self.sock.recv(128)
     if data:
       chunks = data.split(',')
       for chunk in chunks:
@@ -34,5 +34,5 @@ class KilnCommand:
           state = value
         elif key == 'JOB_ID':
           job_id = value
-    return list(state,job_id)
+    return [state,job_id]
 

@@ -8,10 +8,12 @@
   {% if run_state == "RUN" %}
     <a href="{{ url_for('pause_job') }}">Pause</a>&nbsp;
   {% elif run_state == "PAUSE" %}
-    <a href="{{ url_for('pause_job') }}">Resume</a>&nbsp;
+    <a href="{{ url_for('resume_job') }}">Resume</a>&nbsp;
   {% endif %}
   <br/>
-  {% if running_job_id %}
+  {% if running_job == None %}
+  No job running.
+  {% else %}
   Running job: <a href="{{ url_for('show_job_steps', job_id=running_job.id) }}">{{ running_job.comment }}</a> ({{ running_job.steps|length }})
   {% endif %}
   </p>

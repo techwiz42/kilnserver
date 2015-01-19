@@ -1,4 +1,4 @@
-import os, sys, socket, time, math, string, numpy
+import os, sys, socket, time, math, string, numpy, threading
 from max31855 import *  #must be in same directory as this code
 import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
 from numpy import column_stack, savetxt
@@ -42,15 +42,16 @@ class KilnController:
     temp = thermocouple.get()
     return float(temp)
 
+  # returns seconds
   def duration(self):
-    minutes = 0
+    seconds = 0
     start_temp = self.read_temp()
     prev_target = 0
     for segment in self.segments:
-      ramp = abs(segment['target'] - prev_target) / (segment['rate'] / 60.0)
-      minutes += ramp + segment['dwell']
+      ramp = abs(segment['target'] - prev_target) / segment['rate']
+      seconds += ramp + segment['dwell']
       prev_target = segment['target']
-    return round(minutes)
+    return round(seconds)
 
   def build_temp_table(self):
     start_temp = self.read_temp()
@@ -74,6 +75,7 @@ class KilnController:
       previous_target = segment['target']
 
   def set_point(self):
+    seconds = self.runtime - self.pausetime
     minute = int(math.floor(seconds / 60))
     dT = (self.temp_table[minute+1] - self.temp_table[minute])
     dt = seconds / 60 - minute
@@ -102,17 +104,17 @@ class KilnController:
     proportion = 1 #proportion of time heat is on - overall rate limit
 
     # Data collection for graphing
-    runtime = 0   # minutes
-    pausetime = 0   # seconds
+    self.runtime = 0   # seconds
+    self.pausetime = 0   # seconds
     tempdata = [self.read_temp()]
     setdata = [self.set_point()]
-    timedata = [runtime]
+    timedata = [self.runtime]
 
-    while (runtime - (pausetime / 60)) < self.duration():
+    while (self.runtime - self.pausetime) < self.duration():
       # Check run state
       if self.run_state == PAUSE:
         time.sleep(interval)
-        pausetime += interval
+        self.pausetime += interval
         continue
       elif self.run_state == STOP:
         return
@@ -132,7 +134,7 @@ class KilnController:
 
       tempdata.append(tmeas)   #record data for plotting later
       setdata.append(setpoint)
-      timedata.append(runtime)
+      timedata.append(self.runtime)
 
       # find degree of membership in the 5 membership functions for e and d
       # make sure universe of discourse is large enough by increasing its size if e
@@ -189,8 +191,8 @@ class KilnController:
       self.kiln_off()
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
-      runtime = (time.time() - self.start)/60      #present time since start, minutes
-      print "runtime = ", runtime, " minutes; pausetime = ", (pausetime/60), " minutes"
+      self.runtime = time.time() - self.start      #present time since start, seconds
+      print "runtime = ", (self.runtime/60), " minutes; pausetime = ", (self.pausetime/60), " minutes"
       print " " 
 
     #end of while loop
@@ -200,13 +202,14 @@ class KilnCommandProcessor:
     self.sock_path = SOCK_PATH
     # delete stale socket, if it exists
     try:
-      os.unlink(sock_path)
+      os.unlink(self.sock_path)
     except OSError:
-      if os.path.exists(sock_path):
+      if os.path.exists(self.sock_path):
         raise
     # open a unix domain socket
     self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    self.sock.bind(sock_path)
+    self.sock.bind(self.sock_path)
+    os.chmod(self.sock_path, 0777)
 
     self.job_id = None
     self.kiln_controller = None
@@ -237,7 +240,7 @@ class KilnCommandProcessor:
             elif command[0] == 'STOP':
               if self.kiln_controller is not None:
                 self.kiln_controller.stop()
-                self.kiln_controller.join(30) # 30 sec timeout
+                self.kiln_controller_thread.join(30) # 30 sec timeout
                 self.kiln_controller = None
                 self.job_id = None
             elif command[0] == 'PAUSE':
@@ -249,10 +252,10 @@ class KilnCommandProcessor:
             elif command[0] == 'STATUS':
               state = 'IDLE'
               if self.kiln_controller is not None:
-                state = self.kiln_controller.run_state()
+                state = self.kiln_controller.run_state
               response = ','.join([
                   ' '.join(['STATE', state]),
-                  ' '.join(['JOB_ID', self.job_id]),
+                  ' '.join(['JOB_ID', self.job_id if self.job_id else str(-1)]),
               ])
               conn.sendall(response + "\n")
           else:
@@ -266,6 +269,6 @@ class KilnCommandProcessor:
     self.socket_thread.start()
     self.socket_thread.join()
 
-if __name__ == '__main__':
+def main():
   kcp = KilnCommandProcessor()
   kcp.run()
