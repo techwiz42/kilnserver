@@ -1,7 +1,4 @@
-import os, sys, socket, time, math, string, numpy, threading
-from max31855 import *  #must be in same directory as this code
-import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
-from numpy import column_stack, savetxt
+import os, sys, socket, time, math, string, threading
 # TODO: Remove this dependency on kilnweb; only used for logging.
 from kilnweb import app
 from kilnserver.model import db, Job, JobStep
@@ -87,7 +84,7 @@ class KilnController:
   def run(self):
     self.run_state = RUN
     self.start = time.time()
-    m = numpy.empty((5,5),dtype=float)*0    # degree of membership matrix
+    m = empty((5,5),dtype=float)*0    # degree of membership matrix
 
     interval = 5  #interval between updates, seconds
     erange = 5  # default error range +/- 5
@@ -271,5 +268,8 @@ def main():
     print 'Error: Must run as root'
     sys.exit(1)
 
+  from numpy import column_stack, savetxt, empty
+  from max31855 import *  #must be in same directory as this code
+  import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
   kcp = KilnCommandProcessor()
   kcp.run()
