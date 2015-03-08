@@ -24,7 +24,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'web = kilnserver:main',
+            'web = kilnweb:main',
             'kiln = kilnserver.kiln_controller:main',
         ],
     },

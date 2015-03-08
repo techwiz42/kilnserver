@@ -1,6 +1,6 @@
 import time
-from kilnserver import app
-from kilnserver.kiln_command import KilnCommand
+from kilnweb import app
+from kilnweb.kiln_command import KilnCommand
 from kilnserver.model import db, Job, JobStep
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from datetime import datetime

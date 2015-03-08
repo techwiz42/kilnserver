@@ -14,7 +14,7 @@ app.config.update(dict(
 ))
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
 
-import kilnserver.views
+import kilnweb.views
 
 def main():
   app.run(debug=True, host='0.0.0.0')
