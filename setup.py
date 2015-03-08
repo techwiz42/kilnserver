@@ -18,6 +18,10 @@ setup(
     keywords = "thermocouple fuzzy-logic heat-treat kiln",
     url = "http://xunil.net/",
     packages=['kilnserver'],
+    install_requires=[
+      'Flask >= 0.10.1',
+      'Flask-SQLAlchemy >= 1.0'
+    ],
     entry_points={
         'console_scripts': [
             'web = kilnserver:main',
