@@ -1,3 +1,4 @@
+#!/usr/bin/python2.7
 # all the imports
 import os
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
@@ -15,3 +16,6 @@ app.config.update(dict(
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
 
 import kilnserver.views
+
+def main():
+  app.run(debug=True, host='0.0.0.0')
