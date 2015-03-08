@@ -3,3 +3,6 @@
 *.sqlite*
 *.swp
 *.db
+build
+dist
+*.egg-info
