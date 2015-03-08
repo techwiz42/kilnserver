@@ -2,13 +2,10 @@ import os, sys, socket, time, math, string, numpy, threading
 from max31855 import *  #must be in same directory as this code
 import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
 from numpy import column_stack, savetxt
-from kilnserver import app
+# TODO: Remove this dependency on kilnweb; only used for logging.
+from kilnweb import app
 from kilnserver.model import db, Job, JobStep
-
-RUN = 'RUN'
-PAUSE = 'PAUSE'
-STOP = 'STOP'
-SOCK_PATH = '/tmp/kiln_controller'
+from kilnserver.constants import RUN, PAUSE, STOP, SOCK_PATH
 
 class KilnController:
   def __init__(self, segments, conn):
@@ -270,5 +267,9 @@ class KilnCommandProcessor:
     self.socket_thread.join()
 
 def main():
+  if not os.geteuid() == 0:
+    print 'Error: Must run as root'
+    sys.exit(1)
+
   kcp = KilnCommandProcessor()
   kcp.run()
