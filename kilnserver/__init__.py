@@ -269,7 +269,11 @@ def main():
     sys.exit(1)
 
   from numpy import column_stack, savetxt, empty
+  try:
+    import RPi.GPIO as GPIO
+  except ImportError:
+    # Assume we're not running on a Raspberry Pi.
+    from stub.RPi import GPIO as GPIO
   from max31855 import *  #must be in same directory as this code
-  import RPi.GPIO as GPIO   #must run using lower left button: sudo idle3
   kcp = KilnCommandProcessor()
   kcp.run()
