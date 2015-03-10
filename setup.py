@@ -29,7 +29,7 @@ setup(
     entry_points = {
         'console_scripts': [
             'kilnweb = kilnweb:main',
-            'kilnserver = kilnserver.kiln_controller:main',
+            'kilnserver = kilnserver:main',
         ],
     },
     long_description = read('README.md'),
