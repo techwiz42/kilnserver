@@ -1,5 +1,6 @@
 from flask.ext.sqlalchemy import SQLAlchemy
-from kilnserver import app
+# TODO: Remove this dependency on the Flask web app.
+from kilnweb import app
 
 db = SQLAlchemy(app)
 
