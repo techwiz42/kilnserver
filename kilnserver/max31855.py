@@ -1,4 +1,10 @@
 #!/usr/bin/python
+try:
+  import RPi.GPIO as GPIO
+except ImportError:
+  # Assume we're not running on Pi hardware, import stub instead
+  from stub.RPi import GPIO
+
 class MAX31855(object):
     '''Python driver for [MAX38155 Cold-Junction Compensated Thermocouple-to-Digital Converter](http://www.maximintegrated.com/datasheet/index.mvp/id/7273)
      Requires:
