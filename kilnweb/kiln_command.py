@@ -1,5 +1,5 @@
 import socket
-from kilnserver.constants import SOCK_PATH
+from kilncontroller.constants import SOCK_PATH
 
 class KilnCommand:
   def __init__(self):
