@@ -1,7 +1,7 @@
 import os, sys, socket, time, math, string, threading
 # TODO: Remove this dependency on kilnweb; only used for logging.
 from kilnweb import app
-from kilncontroller.model import db, Job, JobStep
+from kilnweb.model import db, Job, JobStep
 from kilncontroller.constants import RUN, PAUSE, STOP, SOCK_PATH
 
 class KilnController:
