@@ -1,7 +1,6 @@
-import os, sys, socket, time, math, string, threading
+import os, sys, socket, time, math, string, threading, json
 # TODO: Remove this dependency on kilnweb; only used for logging.
 from kilnweb import app
-from kilnweb.model import db, Job, JobStep
 from kilncontroller.constants import RUN, PAUSE, STOP, SOCK_PATH
 
 class KilnController:
@@ -216,42 +215,49 @@ class KilnCommandProcessor:
         conn, client_addr = self.sock.accept()
         print "connection from", client_addr
         while True:
-          data = conn.recv(128)
+          data = conn.recv(1024)
           if data:
-            # parse the command
-            command = map(lambda y: y.upper(), map(lambda x: x.strip(), data.split(' ')))
-            print ' '.join(command)
-            if command[0] == 'PING':
+            # TODO: Document full set of commands with JSON examples, identifying required parameters.
+            # Command will take the following format:
+            # {
+            #   'command': 'start',
+            #   'job_id': 16,
+            #   'steps': [
+            #             {
+            #               'id': 42,
+            #               'target': 250,
+            #               'rate': 120,
+            #               'dwell': 30,
+            #               'threshold': 275
+            #             },
+            #             ... etc.
+            command_data = json.loads(data)
+            if command_data['command'].upper() == 'PING':
               conn.sendall("PONG\n")
-            elif command[0] == 'START':
+            elif command_data['command'].upper() == 'START':
               # start a job
-              self.job_id = command[1]
-              job = Job.query.filter_by(id=int(self.job_id)).first()
+              self.job_id = command_data['job_id']
               # TODO: Add failure handling code
-              self.kiln_controller = KilnController(job.steps, conn)
+              self.kiln_controller = KilnController(command_data['steps'], conn)
               self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
               self.kiln_controller_thread.start()
-            elif command[0] == 'STOP':
+            elif command_data['command'].upper() == 'STOP':
               if self.kiln_controller is not None:
                 self.kiln_controller.stop()
                 self.kiln_controller_thread.join(30) # 30 sec timeout
                 self.kiln_controller = None
                 self.job_id = None
-            elif command[0] == 'PAUSE':
+            elif command_data['command'].upper() == 'PAUSE':
               if self.kiln_controller is not None:
                 self.kiln_controller.pause()
-            elif command[0] == 'RESUME':
+            elif command_data['command'].upper() == 'RESUME':
               if self.kiln_controller is not None:
                 self.kiln_controller.resume()
-            elif command[0] == 'STATUS':
+            elif command_data['command'].upper() == 'STATUS':
               state = 'IDLE'
               if self.kiln_controller is not None:
                 state = self.kiln_controller.run_state
-              response = ','.join([
-                  ' '.join(['STATE', state]),
-                  ' '.join(['JOB_ID', self.job_id if self.job_id else str(-1)]),
-              ])
-              conn.sendall(response + "\n")
+              json.dump({'response': 'status', 'state': state, 'job_id': self.job_id if self.job_id else str(-1)}, conn)
           else:
             break
       finally:
