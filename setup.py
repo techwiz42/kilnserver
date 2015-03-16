@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "kilnserver",
-    version = "0.0.9",
+    version = "0.0.10",
     author = "Robert Liesenfeld",
     author_email = "xunil@xunil.net",
     description = ("Daemon and web interface for controlling heat-treating and ceramics kilns."),
@@ -19,7 +19,7 @@ setup(
     url = "http://xunil.net/",
     packages = ['kilncontroller', 'kilnweb', 'stub', 'stub.RPi'],
     package_data = {
-      'kilnweb': ['*.html'],
+      'kilnweb': ['static/*.css', 'templates/*.html'],
     },
     install_requires = [
       'Flask >= 0.10.1',
