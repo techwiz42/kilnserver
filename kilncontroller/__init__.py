@@ -266,7 +266,8 @@ class KilnCommandProcessor:
               state = 'IDLE'
               if self.kiln_controller is not None:
                 state = self.kiln_controller.run_state
-              json.dump({'response': 'status', 'state': state, 'job_id': self.job_id if self.job_id else str(-1)}, conn)
+              response = json.dumps({'response': 'status', 'state': state, 'job_id': self.job_id if self.job_id else str(-1)})
+              conn.sendall(response + "\n")
           else:
             break
       finally:
