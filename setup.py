@@ -10,14 +10,14 @@ def read(fname):
 
 setup(
     name = "kilnserver",
-    version = "0.0.2",
+    version = "0.0.5",
     author = "Robert Liesenfeld",
     author_email = "xunil@xunil.net",
     description = ("Daemon and web interface for controlling heat-treating and ceramics kilns."),
     license = "Proprietary",
     keywords = "thermocouple fuzzy-logic heat-treat kiln",
     url = "http://xunil.net/",
-    packages = ['kilncontroller', 'kilnweb', 'stub.RPi'],
+    packages = ['kilncontroller', 'kilnweb', 'stub', 'stub.RPi'],
     package_data = {
       'kilncontroller': ['*.sql'],
     },

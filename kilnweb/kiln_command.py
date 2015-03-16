@@ -13,21 +13,26 @@ class KilnCommand:
   def start(self, job_id):
     # TODO: Handle job not found condition
     job = Job.query.filter_by(id=int(job_id)).first()
-    json.dump({'command': 'start', 'job_id': int(job_id), 'steps': job.steps}, self.sock)
+    command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps})
+    self.sock.sendall(command + "\n")
 
   def stop(self):
-    json.dump({'command': 'stop'}, self.sock)
+    command = json.dumps({'command': 'stop'})
+    self.sock.sendall(command + "\n")
 
   def pause(self):
-    json.dump({'command': 'pause'}, self.sock)
+    command = json.dumps({'command': 'pause'})
+    self.sock.sendall(command + "\n")
 
   def resume(self):
-    json.dump({'command': 'resume'}, self.sock)
+    command = json.dumps({'command': 'resume'})
+    self.sock.sendall(command + "\n")
 
   def status(self):
     state = None
     job_id = None
-    json.dump({'command': 'status'}, self.sock)
+    command = json.dumps({'command': 'status'})
+    self.sock.sendall(command + "\n")
     data = self.sock.recv(1024)
     if data:
       status_data = json.loads(data)
