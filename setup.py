@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "kilnserver",
-    version = "0.0.6",
+    version = "0.0.7",
     author = "Robert Liesenfeld",
     author_email = "xunil@xunil.net",
     description = ("Daemon and web interface for controlling heat-treating and ceramics kilns."),

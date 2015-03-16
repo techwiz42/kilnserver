@@ -1,6 +1,8 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from kilnweb import app
 
+db = SQLAlchemy(app)
+
 class Job(db.Model):
   __tablename__ = 'jobs'
   id = db.Column(db.Integer, primary_key=True)
@@ -40,5 +42,4 @@ class JobStep(db.Model):
     if key in self.__dict__:
       return self.__dict__[key]
 
-db = SQLAlchemy(app)
 db.create_all()
