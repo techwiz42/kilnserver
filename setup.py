@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "kilnserver",
-    version = "0.0.11",
+    version = "0.0.10",
     author = "Robert Liesenfeld",
     author_email = "xunil@xunil.net",
     description = ("Daemon and web interface for controlling heat-treating and ceramics kilns."),
@@ -18,7 +18,9 @@ setup(
     keywords = "thermocouple fuzzy-logic heat-treat kiln",
     url = "http://xunil.net/",
     packages = ['kilncontroller', 'kilnweb', 'stub', 'stub.RPi'],
-    include_package_data = True,
+    package_data = {
+      'kilnweb': ['static/*.css', 'templates/*.html'],
+    },
     install_requires = [
       'Flask >= 0.10.1',
       'Flask-SQLAlchemy >= 1.0',
