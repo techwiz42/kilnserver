@@ -1,6 +1,15 @@
 import socket, json
 from kilncontroller.constants import SOCK_PATH
 from kilnweb.model import db, Job, JobStep
+from collections import OrderedDict
+
+def jdefault(o):
+  if isinstance(o, JobStep):
+    d = OrderedDict()
+    for key in o.__mapper__.c.keys():
+      d[key] = o[key]
+    return d
+  return o.__dict__
 
 class KilnCommand:
   def __init__(self):
@@ -13,7 +22,7 @@ class KilnCommand:
   def start(self, job_id):
     # TODO: Handle job not found condition
     job = Job.query.filter_by(id=int(job_id)).first()
-    command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps})
+    command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps}, default=jdefault)
     self.sock.sendall(command + "\n")
 
   def stop(self):
