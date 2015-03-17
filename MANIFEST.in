@@ -1,0 +1,2 @@
+recursive-include kilnweb/static/*.css
+recursive-include kilnweb/templates/*.html
