@@ -1,5 +1,5 @@
-from kilnserver import app
-from kilnserver.model import db, Job, JobStep
+from kilnweb import app
+from kilnweb.model import db, Job, JobStep
 from datetime import datetime
 
 def add_demo_job():

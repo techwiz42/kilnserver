@@ -1,11 +1,14 @@
-import os, sys, socket, time, math, string, threading
-# TODO: Remove this dependency on kilnweb; only used for logging.
-from kilnweb import app
-from kilnserver.model import db, Job, JobStep
-from kilnserver.constants import RUN, PAUSE, STOP, SOCK_PATH
+import os, sys, socket, time, math, string, threading, json, logging
+from kilncontroller.constants import RUN, PAUSE, STOP, SOCK_PATH
 
 class KilnController:
   def __init__(self, segments, conn):
+    self.logger = logging.getLogger(__name__)
+    handler = logging.FileHandler('/tmp/kilncontroller.log')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    handler.setFormatter(formatter)
+    self.logger.addHandler(handler) 
+    self.logger.setLevel(logging.DEBUG)
     self.conn = conn
     self.segments = segments
     self.run_state = None
@@ -49,12 +52,12 @@ class KilnController:
 
   def build_temp_table(self):
     start_temp = self.read_temp()
-    app.logger.debug("start_temp is %s" % (repr(start_temp)))
+    self.logger.debug("start_temp is %s" % (repr(start_temp)))
     previous_target = start_temp
     self.temp_table = [start_temp]
 
     for segment in self.segments:
-      app.logger.debug("segment: rate: %s target: %s dwell: %s" % (repr(segment['rate']),repr(segment['target']),repr(segment['dwell'])))
+      self.logger.debug("segment: rate: %s target: %s dwell: %s" % (repr(segment['rate']),repr(segment['target']),repr(segment['dwell'])))
       rate_mins = segment['rate'] / 60.0
       ramp = int(round(abs((segment['target'] - previous_target) / rate_mins)))
       j = 1
@@ -122,8 +125,8 @@ class KilnController:
       setpoint = self.set_point()  # degrees F
       e = tmeas - setpoint # present error degrees F
       d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
-      print "e = ",'%.3f' % e, "  d = " '%.3f' % d
-      print "measured temperature = ", '%.3f' % tmeas, "  setpoint = ", '%.3f' % setpoint
+      self.logger.debug("e = ",'%.3f' % e, "  d = " '%.3f' % d)
+      self.logger.debug("measured temperature = ", '%.3f' % tmeas, "  setpoint = ", '%.3f' % setpoint)
       lasterr = e
 
       tempdata.append(tmeas)   #record data for plotting later
@@ -154,13 +157,13 @@ class KilnController:
       if (d >= drange/2) & (d <= drange): domd = [0,0,0,-2*d/drange +2,2*d/drange -1]
       
       if (dome <0) or (domd <0):
-          print " dome= ", dome, "  domd= ", domd, " erange= ", erange, " drange = ", drange
+          self.logger.debug(" dome= ", dome, "  domd= ", domd, " erange= ", erange, " drange = ", drange)
 
       #Apply all 25 rules using minimum criterion
       for i in range(0,5):     #range end condition is < end, not = end.
         for j in range(0,5):
             m[i,j] = min(dome[i],domd[j])  # should be zero except in  four cases
-      print m
+      self.logger.debug(m)
 
       #defuzzify using an RMS calculation.  There are four values of heating,
       #hhhh,hhh, hh,h, and one value of cooling z = 0.  There are 10 rules
@@ -177,8 +180,8 @@ class KilnController:
 
       if den != 0: result = num/den   # should be between 0 and 1
       if den == 0: result = 0
-      if den == 0: print("denominator = 0")
-      print" num = ",'%.5f' % num,"den = ",'%.5f' % den,"output = ",'%.5f' % result
+      if den == 0: self.logger.debug("denominator = 0")
+      self.logger.debug(" num = ",'%.5f' % num,"den = ",'%.5f' % den,"output = ",'%.5f' % result)
 
       self.kiln_on()
       time.sleep(proportion*interval*result)   # wait for a number of seconds
@@ -186,13 +189,18 @@ class KilnController:
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
       self.runtime = time.time() - self.start      #present time since start, seconds
-      print "runtime = ", (self.runtime/60), " minutes; pausetime = ", (self.pausetime/60), " minutes"
-      print " " 
+      self.logger.debug("runtime = ", (self.runtime/60), " minutes; pausetime = ", (self.pausetime/60), " minutes")
 
     #end of while loop
 
 class KilnCommandProcessor:
   def __init__(self):
+    self.logger = logging.getLogger(__name__)
+    handler = logging.FileHandler('/tmp/kilncommandprocessor.log')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    handler.setFormatter(formatter)
+    self.logger.addHandler(handler) 
+    self.logger.setLevel(logging.WARNING)
     self.sock_path = SOCK_PATH
     # delete stale socket, if it exists
     try:
@@ -214,49 +222,57 @@ class KilnCommandProcessor:
     while True:
       try:
         conn, client_addr = self.sock.accept()
-        print "connection from", client_addr
+        self.logger.debug("connection from", client_addr)
         while True:
-          data = conn.recv(128)
+          data = conn.recv(1024)
           if data:
-            # parse the command
-            command = map(lambda y: y.upper(), map(lambda x: x.strip(), data.split(' ')))
-            print ' '.join(command)
-            if command[0] == 'PING':
+            # TODO: Document full set of commands with JSON examples, identifying required parameters.
+            # Command will take the following format:
+            # {
+            #   'command': 'start',
+            #   'job_id': 16,
+            #   'steps': [
+            #             {
+            #               'id': 42,
+            #               'target': 250,
+            #               'rate': 120,
+            #               'dwell': 30,
+            #               'threshold': 275
+            #             },
+            #             ... etc.
+            command_data = json.loads(data)
+            if command_data['command'].upper() == 'PING':
               conn.sendall("PONG\n")
-            elif command[0] == 'START':
+            elif command_data['command'].upper() == 'START':
               # start a job
-              self.job_id = command[1]
-              job = Job.query.filter_by(id=int(self.job_id)).first()
+              self.job_id = command_data['job_id']
               # TODO: Add failure handling code
-              self.kiln_controller = KilnController(job.steps, conn)
+              self.kiln_controller = KilnController(command_data['steps'], conn)
               self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
               self.kiln_controller_thread.start()
-            elif command[0] == 'STOP':
+            elif command_data['command'].upper() == 'STOP':
               if self.kiln_controller is not None:
                 self.kiln_controller.stop()
                 self.kiln_controller_thread.join(30) # 30 sec timeout
                 self.kiln_controller = None
                 self.job_id = None
-            elif command[0] == 'PAUSE':
+            elif command_data['command'].upper() == 'PAUSE':
               if self.kiln_controller is not None:
                 self.kiln_controller.pause()
-            elif command[0] == 'RESUME':
+            elif command_data['command'].upper() == 'RESUME':
               if self.kiln_controller is not None:
                 self.kiln_controller.resume()
-            elif command[0] == 'STATUS':
+            elif command_data['command'].upper() == 'STATUS':
               state = 'IDLE'
               if self.kiln_controller is not None:
                 state = self.kiln_controller.run_state
-              response = ','.join([
-                  ' '.join(['STATE', state]),
-                  ' '.join(['JOB_ID', self.job_id if self.job_id else str(-1)]),
-              ])
+              response = json.dumps({'response': 'status', 'state': state, 'job_id': self.job_id if self.job_id else str(-1)})
               conn.sendall(response + "\n")
           else:
             break
       finally:
         conn.close()
-        print 'connection closed'
+        self.logger.debug('connection closed')
 
   def run(self):
     self.socket_thread = threading.Thread(target=self.socket_loop)

@@ -1,5 +1,4 @@
 from flask.ext.sqlalchemy import SQLAlchemy
-# TODO: Remove this dependency on the Flask web app.
 from kilnweb import app
 
 db = SQLAlchemy(app)
@@ -16,7 +15,6 @@ class Job(db.Model):
     self.comment = comment
     self.created = created
     self.modified = modified
-    pass
 
   def __repr__(self):
     return '<Job %r, comment=%r, created=%r, modified=%r>' % (self.id, self.comment, self.created, self.modified)
@@ -43,3 +41,5 @@ class JobStep(db.Model):
   def __getitem__(self, key):
     if key in self.__dict__:
       return self.__dict__[key]
+
+db.create_all()

@@ -1,5 +1,6 @@
-import socket
-from kilnserver.constants import SOCK_PATH
+import socket, json
+from kilncontroller.constants import SOCK_PATH
+from kilnweb.model import db, Job, JobStep
 
 class KilnCommand:
   def __init__(self):
@@ -10,29 +11,32 @@ class KilnCommand:
     self.sock.close()
 
   def start(self, job_id):
-    self.sock.sendall("START " + str(job_id) + "\n")
+    # TODO: Handle job not found condition
+    job = Job.query.filter_by(id=int(job_id)).first()
+    command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps})
+    self.sock.sendall(command + "\n")
 
   def stop(self):
-    self.sock.sendall("STOP\n")
+    command = json.dumps({'command': 'stop'})
+    self.sock.sendall(command + "\n")
 
   def pause(self):
-    self.sock.sendall("PAUSE\n")
+    command = json.dumps({'command': 'pause'})
+    self.sock.sendall(command + "\n")
 
   def resume(self):
-    self.sock.sendall("RESUME\n")
+    command = json.dumps({'command': 'resume'})
+    self.sock.sendall(command + "\n")
 
   def status(self):
     state = None
     job_id = None
-    self.sock.sendall("STATUS\n")
-    data = self.sock.recv(128)
+    command = json.dumps({'command': 'status'})
+    self.sock.sendall(command + "\n")
+    data = self.sock.recv(1024)
     if data:
-      chunks = data.split(',')
-      for chunk in chunks:
-        key, value = chunk.split(' ')
-        if key == 'STATE':
-          state = value
-        elif key == 'JOB_ID':
-          job_id = value
+      status_data = json.loads(data)
+      state = status_data['state']
+      job_id = status_data['job_id']
     return [state,job_id]
 
