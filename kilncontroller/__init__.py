@@ -8,7 +8,7 @@ class KilnController:
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     handler.setFormatter(formatter)
     self.logger.addHandler(handler) 
-    self.logger.setLevel(logging.WARNING)
+    self.logger.setLevel(logging.DEBUG)
     self.conn = conn
     self.segments = segments
     self.run_state = None
