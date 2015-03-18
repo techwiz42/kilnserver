@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ $(whoami) != "root" ]; then
+  echo "Please run this script as root."
+  exit 1
+fi
+
+for file in kilnweb.wsgi apache-kilnweb.conf
+do
+  if [ ! -f $file ]; then
+    echo "Could not find $file, please run this script from the kilnserver repo directory"
+    exit 1
+  fi
+done
+
+apt-get -y install apache2 libapache2-mod-wsgi
+mkdir -p /var/lib/apache2/kilnweb
+cp kilnweb.wsgi /var/lib/apache2/kilnweb/.
+cp apache-kilnweb.conf /etc/apache2/sites-available/kilnweb.conf
+a2enmod wsgi
+a2ensite kilnweb
+a2dissite 000-default
+service apache2 restart
