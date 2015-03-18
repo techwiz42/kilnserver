@@ -290,6 +290,6 @@ def main():
   except ImportError:
     # Assume we're not running on a Raspberry Pi.
     from stub.RPi import GPIO as GPIO
-  from max31855 import *  #must be in same directory as this code
+  from max31855 import MAX31855  #must be in same directory as this code
   kcp = KilnCommandProcessor()
   kcp.run()

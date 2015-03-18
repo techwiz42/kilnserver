@@ -28,7 +28,6 @@ setup(
     ],
     entry_points = {
         'console_scripts': [
-            'kilnweb = kilnweb:main',
             'kilncontroller = kilncontroller:main',
         ],
     },
