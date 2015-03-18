@@ -14,16 +14,11 @@ app.config.update(dict(
 ))
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
 
+handler = logging.FileHandler('/tmp/kilnweb.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+app.logger.addHandler(handler) 
+app.logger.setLevel(logging.DEBUG)
 
 import kilnweb.views
 
-def main():
-  handler = logging.FileHandler('/tmp/kilnweb.log')
-  formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-  handler.setFormatter(formatter)
-  app.logger.addHandler(handler) 
-  app.logger.setLevel(logging.DEBUG)
-  app.run(debug=True, host='0.0.0.0')
-
-if __name__ == '__main__':
-  main()
