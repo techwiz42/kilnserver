@@ -38,4 +38,7 @@ setup(
         "Topic :: Utilities",
         "License :: Other/Proprietary License",
     ],
+    zip_safe = False, # This forces installation as a directory tree, rather than a ZIP file.
+                      # Necessary due to kilnweb expecting to read templates and static files
+                      # from the filesystem.
 )
