@@ -17,7 +17,7 @@ setup(
     license = "Proprietary",
     keywords = "thermocouple fuzzy-logic heat-treat kiln",
     url = "http://xunil.net/",
-    packages = ['kilncontroller', 'kilnweb', 'stub', 'stub.RPi'],
+    packages = ['kilncontroller', 'kilnweb', 'kilnsetup', 'stub', 'stub.RPi'],
     package_data = {
       'kilnweb': ['static/*.css', 'templates/*.html'],
     },
@@ -29,6 +29,7 @@ setup(
     entry_points = {
         'console_scripts': [
             'kilncontroller = kilncontroller:main',
+            'kilnsetup = kilnsetup:main',
         ],
     },
     long_description = read('README.md'),
