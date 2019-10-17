@@ -1,4 +1,4 @@
-*Server for thermocouple/fuzzy-logic kiln control project.*
+**Server for thermocouple/fuzzy-logic kiln control project.**
 
 Roger's description of work to be done:
 
