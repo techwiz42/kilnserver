@@ -24,7 +24,7 @@ I imagined that there would be two screens, which you could toggle between.  Scr
 * Scrollable table:  Columns: Segment Number, Target Temperature,Ramp Rate, Dwell Time, Alarm Limit  (alarm limit is a temperature measurement limit, which, if too high, causes program to wait till temp goes down to acceptable level) Special code for 'Done'.
 * Rows:  added as needed, always have one blank row below ones already entered, so you can add another.
 
-** ON SERVER **
+**ON SERVER**
 * Investigate peer-to-peer connection
 * authentication & security
 * run on non-RPi hardware?
