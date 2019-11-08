@@ -1,6 +1,6 @@
 **Server for thermocouple/fuzzy-logic kiln control project.**
 
-Roger's description of work to be done:
+Roger's description of work to be done on the client:
 
 I imagined that there would be two screens, which you could toggle between.  Screen 1 is a bunch of command buttons, and Screen 2 is the data table.
 
@@ -23,4 +23,9 @@ I imagined that there would be two screens, which you could toggle between.  Scr
 **Screen 2:**
 * Scrollable table:  Columns: Segment Number, Target Temperature,Ramp Rate, Dwell Time, Alarm Limit  (alarm limit is a temperature measurement limit, which, if too high, causes program to wait till temp goes down to acceptable level) Special code for 'Done'.
 * Rows:  added as needed, always have one blank row below ones already entered, so you can add another.
+
+* ON SERVER **
+* Investigate peer-to-peer connection
+* authentication & security
+* run on non-RPi hardware?
 
