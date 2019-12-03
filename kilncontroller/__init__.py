@@ -1,5 +1,14 @@
 import os, sys, socket, time, math, string, threading, json, logging
+from numpy import empty
 from kilncontroller.constants import RUN, PAUSE, STOP, SOCK_PATH
+
+try:
+  import RPi.GPIO as GPIO
+except ImportError:
+  # Assume we're not running on Pi hardware, import stub instead
+  from stub.RPi import GPIO
+
+from kilncontroller import max31855 as mx
 
 class KilnController:
   def __init__(self, segments, conn):
@@ -35,7 +44,7 @@ class KilnController:
     self.run_state = STOP
 
   def read_temp(self):
-    thermocouple = MAX31855(24,23,22, 'f', board=GPIO.BOARD)
+    thermocouple = mx.MAX31855(24,23,22, 'f', board=GPIO.BOARD)
     temp = thermocouple.get()
     return float(temp)
 
@@ -118,7 +127,7 @@ class KilnController:
       elif self.run_state == RUN:
         pass
       else:
-        raise "Unknown run state '%s'" % (run_state)
+        raise "Unknown run state '%s'" % (self.run_state)
       
       # find error and delta-error
       tmeas = self.read_temp()   # degrees F
@@ -211,7 +220,7 @@ class KilnCommandProcessor:
     # open a unix domain socket
     self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     self.sock.bind(self.sock_path)
-    os.chmod(self.sock_path, 0777)
+    os.chmod(self.sock_path, 0o777)
 
     self.job_id = None
     self.kiln_controller = None
@@ -281,7 +290,7 @@ class KilnCommandProcessor:
 
 def main():
   if not os.geteuid() == 0:
-    print 'Error: Must run as root'
+    print('Error: Must run as root')
     sys.exit(1)
 
   from numpy import column_stack, savetxt, empty
@@ -290,6 +299,9 @@ def main():
   except ImportError:
     # Assume we're not running on a Raspberry Pi.
     from stub.RPi import GPIO as GPIO
-  from max31855 import *  #must be in same directory as this code
+  from kilncontroller import max31855
   kcp = KilnCommandProcessor()
   kcp.run()
+
+if __name__ == "__main__":
+    main()

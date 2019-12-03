@@ -1,7 +1,9 @@
 import socket, json
-from kilncontroller.constants import SOCK_PATH
+from kilncontroller import constants
 from kilnweb.model import db, Job, JobStep
 from collections import OrderedDict
+
+SOCK_PATH = constants.SOCK_PATH
 
 def jdefault(o):
   if isinstance(o, JobStep):
@@ -13,7 +15,7 @@ def jdefault(o):
 
 class KilnCommand:
   def __init__(self):
-    self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) 
+    self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     self.sock.connect(SOCK_PATH)
 
   def __del__(self):

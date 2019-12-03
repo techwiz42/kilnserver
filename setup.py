@@ -11,8 +11,8 @@ def read(fname):
 setup(
     name = "kilnserver",
     version = "0.0.10",
-    author = "Robert Liesenfeld",
-    author_email = "xunil@xunil.net",
+    authors = "Robert Liesenfeld and Peter Sisk",
+    author_email = "xunil@xunil.net, bartelby@gmail.com",
     description = ("Daemon and web interface for controlling heat-treating and ceramics kilns."),
     license = "Proprietary",
     keywords = "thermocouple fuzzy-logic heat-treat kiln",
