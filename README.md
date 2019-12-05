@@ -30,10 +30,12 @@ on a unix socket for commands from kilnweb.  Kilnweb makes RESTful API calls to 
 
 **The Project**
 
-Best run under python3 in a virtual environment.
+Run under python3 in a virtual environment.
 
-Kilncontroller must be running before kilnweb can be started.  Kilncontroller is listening
-on a unix socket for commands from kilnweb.  Kilnweb makes RESTful API calls to the socket.
+Kilncontroller must be running before kilnweb can be started. If kilncontroller is not running,
+all kilnweb calls will result in a *connection refused* error
+
+Kilncontroller is listening on a unix socket for commands from kilnweb.  Kilnweb makes RESTful API calls to the socket.
 
 **Roger's description of work to be done on the client:**
 

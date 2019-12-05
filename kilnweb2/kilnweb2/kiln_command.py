@@ -25,30 +25,33 @@ class KilnCommand:
     # TODO: Handle job not found condition
     job = model.Job.query.filter_by(id=int(job_id)).first()
     command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps}, default=jdefault)
-    self.sock.sendall(command + "\n")
+    self.sock.sendall(_to_bytes(command + "\n"))
 
   def stop(self):
     command = json.dumps({'command': 'stop'})
-    self.sock.sendall(command + "\n")
+    self.sock.sendall(_to_bytes(command + "\n"))
 
   def pause(self):
     command = json.dumps({'command': 'pause'})
-    self.sock.sendall(command + "\n")
+    self.sock.sendall(_to_bytes(command + "\n"))
 
   def resume(self):
     command = json.dumps({'command': 'resume'})
-    self.sock.sendall(command + "\n")
+    self.sock.sendall(_to_bytes(command + "\n"))
 
   def status(self):
     state = None
     job_id = None
-    command = json.dumps({'command': 'status'}) + '\n'
-    command_bytes = bytes(command, encoding='utf-8')
-    self.sock.sendall(command_bytes)
+    command = json.dumps({'command': 'status'})
+    self.sock.sendall(_to_bytes(command + '\n'))
     data = self.sock.recv(1024)
     if data:
       status_data = json.loads(data)
       state = status_data['state']
       job_id = status_data['job_id']
     return [state,job_id]
+
+def _to_bytes(s):
+  return bytes(s, encoding='utf-8')
+
 

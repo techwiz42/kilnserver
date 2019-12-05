@@ -4,6 +4,8 @@ from flask import Flask
 
 app = Flask(__name__)
 
+#IMPORTANT NOTE: kilnweb2.views not referenced in this file
+# but is required for code to function.  Strange...
 import kilnweb2.views
 
 # Load default config and override config from an environment variable
@@ -21,7 +23,6 @@ def main():
   app.logger.addHandler(handler) 
   app.logger.setLevel(logging.DEBUG)
   app.run(debug=True, host='0.0.0.0')
-
 
 if __name__ == '__main__':
     main()

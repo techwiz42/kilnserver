@@ -251,7 +251,7 @@ class KilnCommandProcessor:
             #             ... etc.
             command_data = json.loads(data)
             if command_data['command'].upper() == 'PING':
-              conn.sendall("PONG\n")
+              conn.sendall(_to_bytes("PONG\n"))
             elif command_data['command'].upper() == 'START':
               # start a job
               self.job_id = command_data['job_id']
@@ -276,7 +276,7 @@ class KilnCommandProcessor:
               if self.kiln_controller is not None:
                 state = self.kiln_controller.run_state
               response = json.dumps({'response': 'status', 'state': state, 'job_id': self.job_id if self.job_id else str(-1)})
-              conn.sendall(response + "\n")
+              conn.sendall(_to_bytes(response + "\n"))
           else:
             break
       finally:
@@ -302,6 +302,9 @@ def main():
   from kilncontroller import max31855
   kcp = KilnCommandProcessor()
   kcp.run()
+
+def _to_bytes(s):
+  return bytes(s, encoding='utf-8')
 
 if __name__ == "__main__":
     main()
