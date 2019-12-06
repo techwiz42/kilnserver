@@ -1,4 +1,4 @@
-#FIXME: flask seems to understand this import but python does not
+#FIXME: flask seems to understand the imports from kilnweb2 but python does not
 #FIXME: python wants "from kilnweb2.kilnweb2 import ... " but this doesn't work in flask.
 #FIXME: the configuration is out of whack somehow.
 from kilnweb2 import app, kiln_command, model
@@ -6,8 +6,8 @@ from flask import request, render_template
 from flask import request, g, redirect, url_for, render_template, flash
 from datetime import datetime, time
 from flask_login import current_user, login_user, logout_user, login_required
-from kilnweb2.model import User
-
+from kilnweb2.model import db, User
+from kilnweb2.forms import RegistrationForm
 
 # Route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
@@ -35,6 +35,19 @@ def logout():
   logout_user()
   return redirect(url_for('login'))
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+  if current_user.is_authenticated:
+    return redirect(url_for('show_jobs'))
+  form = RegistrationForm()
+  if form.validate_on_submit():
+    user = User(username=form.username.data, email=form.email.data)
+    user.set_password(form.password.data)
+    db.session.add(user)
+    db.session.commit()
+    flash('Congratulations, you are now a registered user!')
+    return redirect(url_for('login'))
+  return render_template('register.html', title='Register', form=form)
 
 @app.route('/')
 @login_required
