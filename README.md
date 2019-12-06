@@ -53,7 +53,7 @@ Kilncontroller is listening on a unix socket for commands from kilnweb.  Kilnweb
 * **server:5000/job/resume** resumes the paused job
 * **server:5000/job/stop** stops the current job
 
-**Roger's description of work to be done on the client:**
+**Roger's requested enhancements to the client:**
 
 >I imagined that there would be two screens, which you could toggle between.  Screen 1 is a bunch of command buttons, and Screen 2 is the data table.
 >

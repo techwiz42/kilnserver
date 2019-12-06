@@ -1,8 +1,10 @@
 #! /Users/bartelby/.virtualenvs/kilnsvr/bin/python
 import os, logging
 from flask import Flask
+from flask_login import LoginManager
 
 app = Flask(__name__)
+login = LoginManager(app)
 
 #IMPORTANT NOTE: kilnweb2.views not referenced in this file
 # but is required for code to function.  Strange...
