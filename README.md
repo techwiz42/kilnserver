@@ -30,6 +30,9 @@ Kilncontroller must be running before kilnweb requests can be processed.  Kilnco
 on a unix socket for commands from kilnweb.  Kilnweb invokes commands on the kilncontroller by sending
 requests to to the socket. It also listens on the socket for responses from the kilncontroller.
 
+See also this tutorial for comprehensive Flask how-to:
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins
+
 **The Project**
 
 Run under python3 in a virtual environment.

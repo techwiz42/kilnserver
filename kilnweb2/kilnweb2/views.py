@@ -5,7 +5,7 @@ from kilnweb2 import app, kiln_command, model
 from flask import request, render_template
 from flask import request, g, redirect, url_for, render_template, flash
 from datetime import datetime, time
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_user, logout_user, login_required
 from kilnweb2.model import User
 
 
@@ -30,12 +30,14 @@ def login():
   return render_template('login.html')
 
 @app.route('/logout')
+@login_required
 def logout():
   logout_user()
   return redirect(url_for('login'))
 
 
 @app.route('/')
+@login_required
 def show_jobs():
   kc = kiln_command.KilnCommand()
   run_state, running_job_id = kc.status()
@@ -61,6 +63,7 @@ def parse_job(job_data):
   return steps
 
 @app.route('/job/create', methods=['POST', 'GET'])
+@login_required
 def job_create():
   cursor = model.db.cursor()
   cursor.execute('''INSERT INTO jobs (comment,created) VALUES (?,?)''', [request.form['comment'], int(time.time())])
@@ -75,6 +78,7 @@ def job_create():
 
 
 @app.route('/job/add')
+@login_required
 def add_job():
   job = model.Job('', datetime.now(), datetime.now())
   model.db.session.add(job)
@@ -83,12 +87,14 @@ def add_job():
 
 
 @app.route('/job/<int:job_id>/steps')
+@login_required
 def show_job_steps(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
   job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps)
 
 @app.route('/job/<int:job_id>/steps/update', methods=['POST'])
+@login_required
 def update_job_steps(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
   job.comment = request.form['comment']
@@ -113,6 +119,7 @@ def update_job_steps(job_id):
 
 
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
+@login_required
 def add_job_step(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
   step = model.JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
@@ -122,6 +129,7 @@ def add_job_step(job_id):
   return redirect(url_for('show_job_steps', job_id=job_id))
 
 @app.route('/job/<int:job_id>/steps/delete/<int:step_id>', methods=['GET'])
+@login_required
 def delete_job_step(job_id, step_id):
   job = model.Job.query.filter_by(id=job_id).first()
   step = model.JobStep.query.filter_by(job_id=job_id, id=step_id).first()
@@ -131,6 +139,7 @@ def delete_job_step(job_id, step_id):
   return redirect(url_for('show_job_steps', job_id=job_id))
 
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
+@login_required
 def delete_job(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
   deleted = False
@@ -142,6 +151,7 @@ def delete_job(job_id):
   return render_template('delete_job.html', job=job, deleted=deleted)
 
 @app.route('/job/<int:job_id>/start', methods=['GET', 'POST'])
+@login_required
 def start_job(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
   started = False
@@ -153,6 +163,7 @@ def start_job(job_id):
   return render_template('start_job.html', job=job, started=started)
 
 @app.route('/job/pause')
+@login_required
 def pause_job():
   kc = kiln_command.KilnCommand()
   kc.pause()
@@ -160,6 +171,7 @@ def pause_job():
   return redirect(url_for('show_jobs'))
 
 @app.route('/job/resume')
+@login_required
 def resume_job():
   kc = kiln_command.KilnCommand()
   kc.resume()
@@ -167,6 +179,7 @@ def resume_job():
   return redirect(url_for('show_jobs'))
 
 @app.route('/job/stop')
+@login_required
 def stop_job():
   kc = kiln_command.KilnCommand()
   kc.stop()
