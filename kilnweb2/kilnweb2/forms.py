@@ -5,6 +5,11 @@ from kilnweb2.model import User
 
 # ...
 
+class LoginForm(FlaskForm):
+  username = StringField("User Name", validators = [DataRequired()])
+  password = PasswordField('Password', validators = [DataRequired()])
+  submit = SubmitField('Login')
+
 class RegistrationForm(FlaskForm):
   username = StringField('Username', validators=[DataRequired()])
   full_name = StringField("Full Name") #FIXME: validate name & phone number?

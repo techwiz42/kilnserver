@@ -83,5 +83,12 @@ Kilncontroller is listening on a unix socket for commands from kilnweb.  Kilnweb
 >* ”+” button to allow user to add new table entry, possible “–“  button to allow user to delete segment
 >* Back to Screen 1 button
 
-In addition to Roger's requested changes, add basic auth and perhaps concept of 'user' 
-so multiple users can securely save programs to a single kilncontroller.
+**In addition to Roger's requested changes, add the following features:**
+* basic auth and the concept of _'user'_ so multiple users can securely save programs to a single 
+kilncontroller. 
+* Since multiple users can access the kiln controller and there is only a single kiln to control, 
+there needs to be some mechanism for a user to 'own' a kiln while it's running. 
+* **Question for Roger**: should users be able to queue kiln jobs?  Reserve time on kiln?  
+* **Question for Roger**: should the kilncontroller be able to talk with multiple kilns?
+* Unit tests are required for kilnweb2 and kilncontrolller modules
+* Run pylint or similar to ensure code uniformity and adherence to proper python programming standards and conventions

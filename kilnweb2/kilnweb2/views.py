@@ -7,27 +7,22 @@ from flask import request, g, redirect, url_for, render_template, flash
 from datetime import datetime, time
 from flask_login import current_user, login_user, logout_user, login_required
 from kilnweb2.model import db, User
-from kilnweb2.forms import RegistrationForm
+from kilnweb2.forms import RegistrationForm, LoginForm
 
 # Route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-  if request.method == 'POST':
-    if current_user.is_authenticated:
-      return redirect(url_for('show_jobs'))
-    form = request.form
-    #FIXME: create admin account in db - not hard-coded like so
-    if form['username'] != 'admin' or form['password'] != 'admin':
-      if True:
-        user = User.query.filter_by(username=form['username']).first()
-        if user is None or not user.check_password(form['password']):
-          flash('Invalid Credentials. Please try again.')
-          return redirect(url_for('login'))
-        login_user(user)
-        return redirect(url_for('show_jobs'))
-    else:
-      return redirect(url_for('show_jobs'))
-  return render_template('login.html')
+  if current_user.is_authenticated:
+    return redirect(url_for('show_jobs'))
+  form = LoginForm()
+  if form.validate_on_submit():
+    user = User.query.filter_by(username=form.username.data).first()
+    if user is None or not user.check_password(form.password.data):
+      flash('Invalid username or password')
+      return redirect(url_for('login'))
+    login_user(user)
+    return redirect(url_for('show_jobs'))
+  return render_template('login.html', title='Sign In', form=form)
 
 @app.route('/logout')
 @login_required
