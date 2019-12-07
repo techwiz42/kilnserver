@@ -7,6 +7,8 @@ from kilnweb2.model import User
 
 class RegistrationForm(FlaskForm):
   username = StringField('Username', validators=[DataRequired()])
+  full_name = StringField("Full Name") #FIXME: validate name & phone number?
+  phone_number = StringField("Phone Number")
   email = StringField('Email', validators=[DataRequired(), Email()])
   password = PasswordField('Password', validators=[DataRequired()])
   password2 = PasswordField(
@@ -19,6 +21,6 @@ class RegistrationForm(FlaskForm):
       raise ValidationError('Please use a different username.')
 
   def validate_email(self, email):
-    user = User.query.filter_by(email=email.data).first()
+    user = User.query.filter_by(email_address=email.data).first()
     if user is not None:
       raise ValidationError('Please use a different email address.')
