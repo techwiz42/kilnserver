@@ -20,8 +20,10 @@ class Job(db.Model):
   modified = db.Column(db.DateTime)
   steps = db.relationship('JobStep', backref='job')
 
-  def __init__(self, comment, created, modified):
+  def __init__(self, user_id, name, comment, created, modified):
     self.comment = comment
+    self.user_id = user_id
+    self.name = name
     self.created = created
     self.modified = modified
 
@@ -59,20 +61,25 @@ class User(UserMixin, db.Model):
   __tablename__ = "users"
   id = db.Column(db.Integer, primary_key = True)
   username = db.Column(db.String(32), index=True, unique=True)
+  is_admin = db.Column(db.Integer)
+  is_auth = db.Column(db.Integer)
   full_name = db.Column(db.String(64))
   email_address = db.Column(db.String(128), index=True, unique=True)
   phone_number = db.Column(db.String(16), index=True)
   password_hash = db.Column(db.String(128))
 
   def __repr__(self):
-    return '<User %r id=%r, username=%r, full_name=%r, email_address=%r, phone_number=%r>' % (self.id, self.username, self.full_name, self.email_address, self.phone_number)
+    return '<User %r, username=%r, is_admin=%r, is_auth=%r, full_name=%r, email_address=%r, phone_number=%r>' % (self.id, self.is_admin, self.is_auth, self.username, self.full_name, self.email_address, self.phone_number)
 
   def __getitem__(self, key):
     if key in self.__dict__:
       return self.__dict__[key]
 
-  def __init__(self, username, full_name, email_address, phone_number):
+  def __init__(self, username, full_name, email_address, phone_number, is_admin = 0, is_auth = 0):
+    __tablename__ = 'kilns'
     self.username = username
+    self.is_admin = is_admin
+    self.is_auth = is_auth,
     self.full_name = full_name
     self.email_address = email_address
     self.phone_number = phone_number
@@ -82,6 +89,5 @@ class User(UserMixin, db.Model):
 
   def check_password(self, password):
     return check_password_hash(self.password_hash, password)
-
 
 db.create_all()

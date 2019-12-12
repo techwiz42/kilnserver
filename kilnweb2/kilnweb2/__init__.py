@@ -7,7 +7,7 @@ app = Flask(__name__)
 login = LoginManager(app)
 
 #IMPORTANT NOTE: kilnweb2.views not referenced in this file
-# but is required for code to function.  Strange...
+# but import is required for code to function.  Strange...
 import kilnweb2.views
 
 # Load default config and override config from an environment variable
@@ -18,13 +18,18 @@ app.config.update(dict(
 ))
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
 
+def create_admin_user():
+  admins = app.model.db()
+
 def main():
   handler = logging.FileHandler('/tmp/kilnweb.log')
   formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
   handler.setFormatter(formatter)
   app.logger.addHandler(handler) 
   app.logger.setLevel(logging.DEBUG)
+  create_admin_user()
   app.run(debug=True, host='0.0.0.0')
+
 
 if __name__ == '__main__':
     main()

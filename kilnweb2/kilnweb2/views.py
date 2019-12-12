@@ -35,12 +35,17 @@ def register():
   if current_user.is_authenticated:
     return redirect(url_for('show_jobs'))
   form = RegistrationForm()
+
   if form.validate_on_submit():
+    #Default value for is_admin and is_auth are False. Admin authorizes users access to kilns on page ******* TBD ********
     user = User(username=form.username.data, email_address=form.email.data, full_name=form.full_name.data, phone_number=form.phone_number.data)
     user.set_password(form.password.data)
+    #FIXME: should be able to to set default values for is_admin & is_auth in model.
+    user.is_auth = 0
+    user.is_admin = 0
     db.session.add(user)
     db.session.commit()
-    flash('Congratulations, you are now a registered user!')
+    flash('Congratulations %r, you are now a registered user!') % (current_user.username)
     return redirect(url_for('login'))
   else:
     return render_template('register.html', title='Register', form=form)
@@ -75,7 +80,7 @@ def parse_job(job_data):
 @login_required
 def job_create():
   cursor = model.db.cursor()
-  cursor.execute('''INSERT INTO jobs (comment,created) VALUES (?,?)''', [request.form['comment'], int(time.time())])
+  cursor.execute('''INSERT INTO jobs (user_id,comment,created) VALUES (?,?)''', [current_user.id, request.form['comment'], int(time.time())])
   model.db.commit()
   job_id = cursor.lastrowid
   for step in parse_job(request.form['job_data']):
@@ -89,7 +94,7 @@ def job_create():
 @app.route('/job/add')
 @login_required
 def add_job():
-  job = model.Job('', datetime.now(), datetime.now())
+  job = model.Job(name = 'foo', comment = '', user_id = current_user.id, created = datetime.now(), modified = datetime.now())
   model.db.session.add(job)
   model.db.session.commit()
   return redirect(url_for('show_job_steps', job_id=job.id))

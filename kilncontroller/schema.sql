@@ -18,12 +18,15 @@ create table job_steps (
   threshold integer not null
  );
 
- drop table if exists users;
- create table users(
-   id integer primary key autoincrement,
-   username text not null,
-   full_name text,
-   email_address text not null,
-   phone_number text,
-   password_hash  text
- )
+drop table if exists users;
+create table users(
+  id integer primary key autoincrement,
+  username text not null,
+  is_admin integer,
+  is_auth integer,
+  full_name text,
+  email_address text not null,
+  phone_number text,
+  password_hash  text
+);
+
