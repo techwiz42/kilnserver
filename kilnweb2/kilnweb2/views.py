@@ -6,8 +6,8 @@ from flask import request, render_template
 from flask import request, g, redirect, url_for, render_template, flash
 from datetime import datetime, time
 from flask_login import current_user, login_user, logout_user, login_required
-from kilnweb2.model import db, User
-from kilnweb2.forms import RegistrationForm, LoginForm
+from kilnweb2.model import db, User, Job
+from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm
 
 # Route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
@@ -35,7 +35,6 @@ def register():
   if current_user.is_authenticated:
     return redirect(url_for('show_jobs'))
   form = RegistrationForm()
-
   if form.validate_on_submit():
     #Default value for is_admin and is_auth are False. Admin authorizes users access to kilns on page ******* TBD ********
     user = User(username=form.username.data, email_address=form.email.data, full_name=form.full_name.data, phone_number=form.phone_number.data)
@@ -50,16 +49,26 @@ def register():
   else:
     return render_template('register.html', title='Register', form=form)
 
-@app.route('/')
+@app.route('/', methods = ['GET', 'POST'])
 @login_required
 def show_jobs():
+  form = NewJobForm()
+  if form.validate_on_submit():
+    name = form.name.data
+    comment = form.comment.data
+    job = Job(name=name, comment=comment, user_id=current_user.id, created=datetime.now(),
+                    modified=datetime.now())
+    db.session.add(job)
+    db.session.commit()
+    flash("added job %r" % (name))
+    return redirect(url_for('show_jobs'))
   kc = kiln_command.KilnCommand()
   run_state, running_job_id = kc.status()
   running_job_info = None
   if running_job_id is not None:
     running_job_info = model.Job.query.filter_by(id=running_job_id).first()
   jobs = model.Job.query.all()
-  return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info)
+  return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info, form=form)
 
 
 def parse_job(job_data):
@@ -76,28 +85,11 @@ def parse_job(job_data):
     })
   return steps
 
-@app.route('/job/create', methods=['POST', 'GET'])
-@login_required
-def job_create():
-  cursor = model.db.cursor()
-  cursor.execute('''INSERT INTO jobs (user_id,comment,created) VALUES (?,?)''', [current_user.id, request.form['comment'], int(time.time())])
-  model.db.commit()
-  job_id = cursor.lastrowid
-  for step in parse_job(request.form['job_data']):
-    cursor.execute('insert into job_steps (job_id, target, rate, dwell, threshold) values (?, ?, ?, ?, ?)',
-                   [job_id, step['target'], step['rate'], step['dwell'], step['threshold']])
-  model.db.commit()
-  flash('Successfully created job "%s" (%d)' % (request.form['comment'], job_id))
-  return redirect(url_for('show_jobs'))
-
-
-@app.route('/job/add')
-@login_required
-def add_job():
-  job = model.Job(name = 'foo', comment = '', user_id = current_user.id, created = datetime.now(), modified = datetime.now())
+def add_job(name, comment):
+  job = model.Job(name = name, comment=comment, user_id = current_user.id, created = datetime.now(), modified = datetime.now())
+  flash("adding a job")
   model.db.session.add(job)
   model.db.session.commit()
-  return redirect(url_for('show_job_steps', job_id=job.id))
 
 
 @app.route('/job/<int:job_id>/steps')

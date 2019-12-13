@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextA
 from wtforms.widgets import TextArea
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from flask_login import current_user
-from kilnweb2.model import User
+from kilnweb2.model import User, Job
 
 # ...
 
@@ -31,3 +31,13 @@ class RegistrationForm(FlaskForm):
     user = User.query.filter_by(email_address=email.data).first()
     if user is not None:
       raise ValidationError('Please use a different email address.')
+
+class NewJobForm(FlaskForm):
+  name = StringField("Job Name", validators=[DataRequired()])
+  comment = TextAreaField('Comment')
+  submit = SubmitField("New Job")
+
+  def validate_name(self, name):
+    name = Job.query.filter_by(name=name.data).first()
+    if name is not None:
+      raise ValidationError('Please choose a different name for your job')

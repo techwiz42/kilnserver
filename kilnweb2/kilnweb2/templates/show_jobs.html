@@ -17,21 +17,23 @@
   Running job: <a href="{{ url_for('show_job_steps', job_id=running_job.id) }}">{{ running_job.comment }}</a> ({{ running_job.steps|length }})
   {% endif %}
   </p>
-  <a href="{{ url_for('add_job') }}">Add Job</a>
-  <!--
-  <form action="{{ url_for('job_create') }}" method=post class=add-entry>
-    <dl>
-      <dt>Comment:
-      <dd><input type=text size=30 name=comment>
-      <dt>Job Data:
-      <dd><textarea name=job_data rows=5 cols=40></textarea>
-      <dd><input type=submit value=Create>
-    </dl>
+  {% if current_user.is_auth %}
+  <form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+      {{ form.name.label }}
+      {{ form.name(size=32) }}
+    </p>
+    <p>
+      {{ form.comment.label }}
+      {{ form.comment(rows=3, cols=45) }}
+    </p>
+    <p>{{ form.submit() }}</p>
   </form>
-  -->
+  {% endif %}
   <ul class=entries>
   {% for job in jobs %}
-    <li><a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.comment }}</a> ({{ job.steps|length }}) <a href="{{ url_for('start_job', job_id=job.id) }}">Start</a> <a href="{{ url_for('delete_job', job_id=job.id) }}">Delete</a>
+    <li><a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.name }}</a> ({{ job.steps|length }}) <a href="{{ url_for('start_job', job_id=job.id) }}">Start</a> <a href="{{ url_for('delete_job', job_id=job.id) }}">Delete</a>
   {% else %}
     <li><em>No jobs found.</em>
   {% endfor %}
