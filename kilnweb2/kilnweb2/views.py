@@ -103,8 +103,6 @@ def show_job_steps(job_id):
 @login_required
 def update_job_steps(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
-  job.comment = request.form['comment']
-  model.db.session.add(job)
   for step_id in request.form.getlist('id'):
     target = int(request.form["target[%s]" % step_id])
     rate = int(request.form["rate[%s]" % step_id])
@@ -120,7 +118,7 @@ def update_job_steps(job_id):
       step_record.threshold = threshold
     model.db.session.add(step_record)
   model.db.session.commit()
-  flash("Job %s updated" % job.comment)
+  flash("Job %s updated" % job.name)
   return redirect(url_for('show_job_steps', job_id=job.id))
 
 
@@ -139,7 +137,7 @@ def add_job_step(job_id):
 def delete_job_step(job_id, step_id):
   job = model.Job.query.filter_by(id=job_id).first()
   step = model.JobStep.query.filter_by(job_id=job_id, id=step_id).first()
-  flash("Job step %d from job %s deleted." % (step_id, job.comment))
+  flash("Job step %d from job %s deleted." % (step_id, job.name))
   model.db.session.delete(step)
   model.db.session.commit()
   return redirect(url_for('show_job_steps', job_id=job_id))
@@ -150,7 +148,10 @@ def delete_job(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
   deleted = False
   if request.method == 'POST':
-    flash("Job %s deleted." % job.comment)
+    flash("Job %s deleted." % job.name)
+    steps = model.JobStep.query.filter_by(job=job)
+    for step in steps:
+      model.db.session.delete(step)
     model.db.session.delete(job)
     model.db.session.commit()
     deleted = True
@@ -164,7 +165,7 @@ def start_job(job_id):
   if request.method == 'POST':
     kc = kiln_command.KilnCommand()
     kc.start(job_id)
-    flash("Job %s started." % job.comment)
+    flash("Job %s started." % job.name)
     started = True
   return render_template('start_job.html', job=job, started=started)
 

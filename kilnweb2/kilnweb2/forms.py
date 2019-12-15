@@ -35,7 +35,7 @@ class RegistrationForm(FlaskForm):
 class NewJobForm(FlaskForm):
   name = StringField("Job Name", validators=[DataRequired()])
   comment = TextAreaField('Comment')
-  submit = SubmitField("New Job")
+  submit = SubmitField("Add Job")
 
   def validate_name(self, name):
     name = Job.query.filter_by(name=name.data).first()

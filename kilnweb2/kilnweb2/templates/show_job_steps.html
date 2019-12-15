@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 {% block body %}
-<h2>Job "{{ job.comment }}"</h2>
+<h2>Job {{ job.name }}</h2>
+<p>{{ job.comment }}</p>
 <p>
   <form action="{{ url_for('update_job_steps', job_id=job.id) }}" method="post">
-    <input type="text" name="comment" value="{{ job.comment }}"/>
-    <table>
+    <table border="0" cellpadding="2" cellspacing="2">
     <tr>
       <th>Target</th>
       <th>Rate</th>
@@ -14,12 +14,14 @@
     </tr>
     {% for step in job_steps %}
     <tr>
-      <input type="hidden" name="id" value="{{ step.id }}"/>
-      <td><input type="text" size="6" name="target[{{ step.id }}]" value="{{ step.target }}"/>&deg;F</td>
-      <td><input type="text" size="6" name="rate[{{ step.id }}]" value="{{ step.rate }}"/> min</td>
-      <td><input type="text" size="6" name="dwell[{{ step.id }}]" value="{{ step.dwell }}"/> min</td>
-      <td><input type="text" size="6" name="threshold[{{ step.id }}]" value="{{ step.threshold }}"/>&deg;F</td>
-      <td><a href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}">Delete</a></td>
+      <div class="form-group">
+        <input type="hidden" name="id" value="{{ step.id }}"/>
+        <td><input type="text" id='target' size="6" name="target[{{ step.id }}]" value="{{ step.target }}"/>&deg;&nbsp;</td>
+        <td><input type="text" id='rate' size="6" name="rate[{{ step.id }}]" value="{{ step.rate }}"/> min&nbsp;</td>
+        <td><input type="text" id='dwell' size="6" name="dwell[{{ step.id }}]" value="{{ step.dwell }}"/> min&nbsp;</td>
+        <td><input type="text"  id='threshold' size="6" name="threshold[{{ step.id }}]" value="{{ step.threshold }}"/>&deg;F&nbsp;</td>
+        <td title="Delete step"><a href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}"><i class="glyphicon glyphicon-remove"></i></a></td>
+      </div>
     </tr>
     {% endfor %}
     <tr>
@@ -27,11 +29,10 @@
       <td>&nbsp;</td>
       <td>&nbsp;</td>
       <td>&nbsp;</td>
-      <td><a href="{{ url_for('add_job_step', job_id=job.id) }}">Add Step</a></td>
+      <td title="Add a step"><a href="{{ url_for('add_job_step', job_id=job.id) }}"><i class="glyphicon glyphicon-plus"></i></a></td>
     </tr>
     </table>
-    <input type="submit" value="Update"/>
-    <input type="reset" value="Discard Changes"/>
+    <input type="submit" value="Update Job"/>
   </form>
 </p>
 <ul>
@@ -39,7 +40,4 @@
 <li><a href="{{ url_for('start_job', job_id=job.id) }}">Start</a></li>
 <li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete Job</a></li>
 </ul>
-<pre>
-{{ derp }}
-</pre>
 {% endblock %}
