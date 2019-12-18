@@ -70,6 +70,31 @@ def show_jobs():
   jobs = model.Job.query.all()
   return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info, form=form)
 
+@app.route('/users', methods = ['GET', 'POST'])
+@login_required
+def show_users():
+  if not current_user.is_admin:
+    flash("%s is not authorized access this page") % current_user.name
+    return redirect(url_for('show_jobs'))
+  users = model.User.query.all()
+  return render_template('show_users.html', users=users)
+
+@app.route('/update_user', methods = ['GET', 'POST'])
+@login_required
+def update_user():
+  if not current_user.is_admin:
+    flash("%s is not authorized access this page") % current_user.name
+    return redirect(url_for('show_jobs'))
+  return "<h1>HONK<h1>"
+
+
+@app.route('/delete_user', methods=['GET', 'POST'])
+@login_required
+def delete_user():
+  if not current_user.is_admin:
+    flash("%s is not authorized access this page") % current_user.name
+    return redirect(url_for('show_jobs'))
+  return "<h1>BEEP</h1>"
 
 def parse_job(job_data):
   steps = []

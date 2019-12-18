@@ -2,8 +2,11 @@
 import os, logging
 from flask import Flask
 from flask_login import LoginManager
+from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
+app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 login = LoginManager(app)
 
 #IMPORTANT NOTE: kilnweb2.views not referenced in this file

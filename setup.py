@@ -26,7 +26,8 @@ setup(
       'Flask-SQLAlchemy >= 1.0',
       'numpy >= 1.7.1',
       'flask-login',
-      'flask-wtf'
+      'flask-wtf',
+      'flask_bootstrap'
     ],
     entry_points = {
         'console_scripts': [

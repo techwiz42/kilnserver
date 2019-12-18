@@ -1,0 +1,46 @@
+{% extends "bootstrap/base.html" %}
+{% block body %}
+  <div class="container">
+      <h2>Kilncontroller Users</h2>
+      <div class="row">
+          <div class="col-md-1"><b>Username</b></div>
+          <div class="col-md-2"><b>Full Name</b></div>
+          <div class="col-md-2"><b>Email Address</b></div>
+          <div class="col-md-2"><b>Phone Number</b></div>
+          <div class="col-md-1"><b>Is Auth</b></div>
+          <div class="col-md-1"><b>Is Admin</b></div>
+      </div>
+    {% for user in users %}
+        <div class="row">
+          <form>
+              <input type="hidden" name="id" value="{{ user.id }}"/>
+              <div class="col-md-1">{{ user.username }}</div>
+              <div class="col-md-2"><input type="text" id='full_name'  name="full_name" value="{{ user.full_name }}"/></div>
+              <div class="col-md-2">{{ user.email_address }}</div>
+              <div class="col-md-2">{{ user.phone_number }}</div>
+              <div class="col-md-1">
+                  <!-- FIXME - this is a bogus way to show checkbox value -->
+                {% if user.is_auth %}
+                  <input type="checkbox" name="is_auth"  checked>
+                {% else %}
+                  <input type="checkbox"  name="is_auth">
+                {% endif %}
+              </div>
+              <div class="col-md-1">
+                  <!-- FIXME - this is a bogus way to show checkbox value -->
+                  {% if user.is_admin %}
+                    <input type="checkbox" name="is_admin" checked>
+                  {% else %}
+                    <input type="checkbox" name="is_admin">
+                  {% endif %}
+              </div>
+              <div class="col-md-1"><input type="submit" value="Update" action="{{ url_for('update_user') }}" method="post"></div>
+          </form>
+          <form>
+            <input type="hidden" name="id" value="{{ user.id }}"/>
+            <div class="col-md-1"><input type="submit" value="Delete" action="{{ url_for('delete_user') }}" method="post"></div>
+          </form>
+    </div>
+  {% endfor %}
+  </div>
+{% endblock %}
