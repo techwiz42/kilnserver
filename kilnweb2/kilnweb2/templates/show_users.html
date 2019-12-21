@@ -31,30 +31,27 @@
     {% for user in users %}
         <div class="row">
           <form>
-              <input type="hidden" name="id" value="{{ user.id }}"/>
               <div class="col-md-1">{{ user.username }}</div>
-              <div class="col-md-2"><input type="text" id='full_name'  name="full_name" value="{{ user.full_name }}"/></div>
-              <div class="col-md-2">{{ user.email_address }}</div>
-              <div class="col-md-2">{{ user.phone_number }}</div>
+              <div class="col-md-2"><input type="text" id='full_name'  name="full_name[{{ user.id }}]" value="{{ user.full_name }}"/></div>
+              <div class="col-md-2"><input type="text" id='email_address' name='email_address[{{ user.id }}]' value="{{ user.email_address }}"></div>
+              <div class="col-md-2"><input type="text" id="phone_number" name="phone_number[{{ user.id }}]" value="{{ user.phone_number }}"></div>
               <div class="col-md-1">
                   <!-- FIXME - this is a bogus way to show checkbox value -->
                 {% if user.is_auth %}
-                  <input type="checkbox" name="is_auth"  checked>
+                  <input type="checkbox" name="is_auth[{{ user.id }}]"  checked>
                 {% else %}
-                  <input type="checkbox"  name="is_auth">
+                  <input type="checkbox"  name="is_auth[{{ user.id }}]">
                 {% endif %}
               </div>
               <div class="col-md-1">
                   <!-- FIXME - this is a bogus way to show checkbox value -->
                   {% if user.is_admin %}
-                    <input type="checkbox" name="is_admin" checked>
+                    <input type="checkbox" name="is_admin[{{ user.id }}]" checked>
                   {% else %}
-                    <input type="checkbox" name="is_admin">
+                    <input type="checkbox" name="is_admin[{{ user.id }}]">
                   {% endif %}
               </div>
-              <div class="col-md-1"><input type="submit" value="Update" action="{{ url_for('update_user') }}" method="POST"></div>
-          </form>
-          <form>
+              <div class="col-md-1"><input type='submit' action="{{ url_for('update_user', user_id = user.id) }}" value="Update" method="POST"></div>
               <div class="col-md-1"><a href="{{ url_for('delete_user', user_id = user.id) }}">Delete</a></div>
           </form>
     </div>

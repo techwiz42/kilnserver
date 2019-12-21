@@ -2,7 +2,6 @@
 #FIXME: python wants "from kilnweb2.kilnweb2 import ... " but this doesn't work in flask.
 #FIXME: the configuration is out of whack somehow.
 from kilnweb2 import app, kiln_command, model
-from flask import request, render_template
 from flask import request, g, redirect, url_for, render_template, flash
 from datetime import datetime, time
 from flask_login import current_user, login_user, logout_user, login_required
@@ -79,13 +78,22 @@ def show_users():
   users = model.User.query.all()
   return render_template('show_users.html', users=users)
 
-@app.route('/update_user', methods = ['GET', 'POST'])
+@app.route('/users/<int:user_id>/update_user', methods = ['GET', 'POST'])
 @login_required
-def update_user():
+def update_user(user_id):
   if not current_user.is_admin:
     flash("%s is not authorized access this page") % current_user.name
     return redirect(url_for('show_jobs'))
-  flash("update_user was invoked")
+  user = model.User.query.filter_by(id=user_id).first()
+  if not user:
+    flash("Unable to update user")
+  else:
+    user.full_name = request.args.get('full_name[%r]' % user_id)
+    user.email_address = request.args.get('email_address[%r]' % user_id)
+    user.phone_number = request.args.get('phone_number[%r]' % user_id)
+    user.is_admin = (request.args.get('is_admin[%r]' % user_id) == 'on')
+    user.is_auth = (request.args.get('is_auth[%r]' %user_id) == 'on')
+    flash("User %s updated successfully" % user.username)
   users = model.User.query.all()
   return render_template('show_users.html', users=users)
 
