@@ -1,7 +1,25 @@
 {% extends "bootstrap/base.html" %}
 {% block body %}
   <div class="container">
-      <h2>Kilncontroller Users</h2>
+      <h2><a href="{{ url_for('show_jobs') }}">Kilncontroller Users</a></h2>
+      <div align="right">
+        {% if current_user.is_anonymous %}
+          <a href="{{ url_for('login') }}">Login</a>
+          <a href="{{ url_for('register') }}">Register</a>
+        {% else %}
+          {{ current_user.username }}
+          <a href="{{ url_for('show_jobs') }}">Show Jobs</a>
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('show_users') }}">Show Users</a>
+          {% endif %}
+          <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+      </div>
+      <div class=metanav>
+      </div>
+      {% for message in get_flashed_messages() %}
+        <div class=flash>{{ message }}</div>
+      {% endfor %}
       <div class="row">
           <div class="col-md-1"><b>Username</b></div>
           <div class="col-md-2"><b>Full Name</b></div>
@@ -34,11 +52,10 @@
                     <input type="checkbox" name="is_admin">
                   {% endif %}
               </div>
-              <div class="col-md-1"><input type="submit" value="Update" action="{{ url_for('update_user') }}" method="post"></div>
+              <div class="col-md-1"><input type="submit" value="Update" action="{{ url_for('update_user') }}" method="POST"></div>
           </form>
           <form>
-            <input type="hidden" name="id" value="{{ user.id }}"/>
-            <div class="col-md-1"><input type="submit" value="Delete" action="{{ url_for('delete_user') }}" method="post"></div>
+              <div class="col-md-1"><a href="{{ url_for('delete_user', user_id = user.id) }}">Delete</a></div>
           </form>
     </div>
   {% endfor %}

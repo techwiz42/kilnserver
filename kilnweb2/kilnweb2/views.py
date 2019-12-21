@@ -44,7 +44,7 @@ def register():
     user.is_admin = 0
     db.session.add(user)
     db.session.commit()
-    flash('Congratulations %r, you are now a registered user!') % (current_user.username)
+    flash('Congratulations. you are now a registered user!')
     return redirect(url_for('login'))
   else:
     return render_template('register.html', title='Register', form=form)
@@ -85,16 +85,23 @@ def update_user():
   if not current_user.is_admin:
     flash("%s is not authorized access this page") % current_user.name
     return redirect(url_for('show_jobs'))
-  return "<h1>HONK<h1>"
+  flash("update_user was invoked")
+  users = model.User.query.all()
+  return render_template('show_users.html', users=users)
 
 
-@app.route('/delete_user', methods=['GET', 'POST'])
+@app.route('/users/<int:user_id>/delete_user', methods=['GET', 'POST'])
 @login_required
-def delete_user():
+def delete_user(user_id):
   if not current_user.is_admin:
     flash("%s is not authorized access this page") % current_user.name
     return redirect(url_for('show_jobs'))
-  return "<h1>BEEP</h1>"
+  flash("EAT MY SHORTS")
+  user = model.User.query.filter_by(id=user_id).first()
+  model.db.session.delete(user)
+  model.db.session.commit()
+  users = model.User.query.all()
+  return render_template('show_users.html', users=users)
 
 def parse_job(job_data):
   steps = []
