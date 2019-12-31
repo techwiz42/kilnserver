@@ -1,11 +1,12 @@
 #FIXME: flask seems to understand the imports from kilnweb2 but python does not
-#FIXME: python wants "from kilnweb2.kilnweb2 import ... " but this doesn't work in flask.
+#FIXME: python wants "from kilnweb2.kilnweb2 import .. " but this doesn't work in flask.
 #FIXME: the configuration is out of whack somehow.
 from kilnweb2 import app, kiln_command, model
 from flask import request, g, redirect, url_for, render_template, flash
 from datetime import datetime, time
 from flask_login import current_user, login_user, logout_user, login_required
-from kilnweb2.model import db, User, Job
+from kilnweb2.model import User, Job
+from kilnweb2 import app
 from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm
 
 # Route for handling the login page logic
@@ -41,9 +42,10 @@ def register():
     #FIXME: should be able to to set default values for is_admin & is_auth in model.
     user.is_auth = 0
     user.is_admin = 0
-    db.session.add(user)
-    db.session.commit()
+    app.db.session.add(user)
+    app.db.session.commit()
     flash('Congratulations. you are now a registered user!')
+    flash("You must be authorized by an administrator to use the kiln.")
     return redirect(url_for('login'))
   else:
     return render_template('register.html', title='Register', form=form)
@@ -57,8 +59,8 @@ def show_jobs():
     comment = form.comment.data
     job = Job(name=name, comment=comment, user_id=current_user.id, created=datetime.now(),
                     modified=datetime.now())
-    db.session.add(job)
-    db.session.commit()
+    app.db.session.add(job)
+    app.db.session.commit()
     flash("added job %r" % (name))
     return redirect(url_for('show_jobs'))
   kc = kiln_command.KilnCommand()
@@ -106,8 +108,8 @@ def delete_user(user_id):
     return redirect(url_for('show_jobs'))
   flash("EAT MY SHORTS")
   user = model.User.query.filter_by(id=user_id).first()
-  model.db.session.delete(user)
-  model.db.session.commit()
+  app.db.session.delete(user)
+  app.db.session.commit()
   users = model.User.query.all()
   return render_template('show_users.html', users=users)
 
@@ -128,8 +130,8 @@ def parse_job(job_data):
 def add_job(name, comment):
   job = model.Job(name = name, comment=comment, user_id = current_user.id, created = datetime.now(), modified = datetime.now())
   flash("adding a job")
-  model.db.session.add(job)
-  model.db.session.commit()
+  app.db.session.add(job)
+  app.db.session.commit()
 
 
 @app.route('/job/<int:job_id>/steps')
@@ -156,8 +158,8 @@ def update_job_steps(job_id):
       step_record.rate = rate
       step_record.dwell = dwell
       step_record.threshold = threshold
-    model.db.session.add(step_record)
-  model.db.session.commit()
+    app.db.session.add(step_record)
+  app.db.session.commit()
   flash("Job %s updated" % job.name)
   return redirect(url_for('show_job_steps', job_id=job.id))
 
@@ -167,8 +169,8 @@ def update_job_steps(job_id):
 def add_job_step(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
   step = model.JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
-  model.db.session.add(step)
-  model.db.session.commit()
+  app.db.session.add(step)
+  app.db.session.commit()
   flash("Job step added.")
   return redirect(url_for('show_job_steps', job_id=job_id))
 
@@ -178,8 +180,8 @@ def delete_job_step(job_id, step_id):
   job = model.Job.query.filter_by(id=job_id).first()
   step = model.JobStep.query.filter_by(job_id=job_id, id=step_id).first()
   flash("Job step %d from job %s deleted." % (step_id, job.name))
-  model.db.session.delete(step)
-  model.db.session.commit()
+  app.db.session.delete(step)
+  app.db.session.commit()
   return redirect(url_for('show_job_steps', job_id=job_id))
 
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
@@ -191,9 +193,9 @@ def delete_job(job_id):
     flash("Job %s deleted." % job.name)
     steps = model.JobStep.query.filter_by(job=job)
     for step in steps:
-      model.db.session.delete(step)
-    model.db.session.delete(job)
-    model.db.session.commit()
+      app.db.session.delete(step)
+    app.db.session.delete(job)
+    app.db.session.commit()
     deleted = True
   return render_template('delete_job.html', job=job, deleted=deleted)
 

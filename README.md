@@ -9,6 +9,7 @@ Rob originally structured the project.
 See this page: https://flask.palletsprojects.com/en/1.1.x/patterns/packages/ for instructions on how to 
 set up, initialize and run kilnweb2.  Note that the kilnweb2 directory structure looks like this:
 
+
 ~~~
 /kilnweb2
   /kilnweb2
@@ -19,6 +20,13 @@ set up, initialize and run kilnweb2.  Note that the kilnweb2 directory structure
     model.py
     views.py
 ~~~    
+
+The database has been moved from /tmp/kilnweb.db to the kilnweb2/kilnweb2/kilnweb.db.  
+It is initialized from the command line by invoking 
+~~~
+flask db init
+~~~
+
 The flask app lives in __init__.py and is invoked from a command window.  cd to the upper-level
 kilnweb2 directory and invoke 
 ~~~

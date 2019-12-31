@@ -23,11 +23,12 @@ setup(
     },
     install_requires = [
       'Flask >= 0.10.1',
-      'Flask-SQLAlchemy >= 1.0',
+      'flask-sqlalchemy',
       'numpy >= 1.7.1',
       'flask-login',
       'flask-wtf',
-      'flask_bootstrap'
+      'flask_bootstrap',
+      'flask-migrate'
     ],
     entry_points = {
         'console_scripts': [
