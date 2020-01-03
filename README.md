@@ -69,11 +69,11 @@ Kilncontroller is listening on a unix socket for commands from kilnweb.  Kilnweb
 >I imagined that there would be two screens, which you could toggle between.  Screen 1 is a bunch of command buttons, and Screen 2 is the data table.
 >
 >**Screen 1:   Commands**
->* Wakeup/Reset  Establish connection to temperature programmer via WiFi & hand shake, reset.
->* NewProgram:  Start new program and give it a name (bring up kb to allow user to type name)
->* Store:  Store the program you are working on in RPi memory
->* Recall:  Recall a program by name from RPi memory – bring up scroll table of all programs
->* Delete:  Delete a program by name from Rpi memory
+>* Wakeup/Reset  Establish connection to temperature programmer via WiFi & hand shake, reset. ## DONT UNDERSTAND THIS - DO YOU MEAN THE RPI SHOULD BE A WIFI ACCESS POINT? ##
+>* NewProgram:  ~~Start new program and give it a name (bring up kb to allow user to type name)~~
+>* Store:  ~~Store the program you are working on in RPi memory~~
+>* Recall:  ~~Recall a program by name from RPi memory – bring up scroll table of all programs~~
+>* Delete:  ~~Delete a program by name from Rpi memory~~
 >* Setup:  Go to screen 2 to set up temperature program
 >* Review:   Review program data
 >* Start:  Send start command to controller- start from beginning of program
@@ -92,11 +92,11 @@ Kilncontroller is listening on a unix socket for commands from kilnweb.  Kilnweb
 >* Back to Screen 1 button
 
 **In addition to Roger's requested changes, add the following features:**
-* basic auth and the concept of _'user'_ so multiple users can securely save programs to a single 
-kilncontroller. 
+* ~~basic auth and the concept of _'user'_ so multiple users can securely save programs to a single 
+kilncontroller.~~ 
 * Since multiple users can access the kiln controller and there is only a single kiln to control, 
 there needs to be some mechanism for a user to 'own' a kiln while it's running. 
-* **Question for Roger**: should users be able to queue kiln jobs?  Reserve time on kiln?  
-* **Question for Roger**: should the kilncontroller be able to talk with multiple kilns?
+* **Question for Roger**: should users be able to queue kiln jobs?  Reserve time on kiln? ## NO ## 
+* **Question for Roger**: should the kilncontroller be able to talk with multiple kilns? ## NO ##
 * Unit tests are required for kilnweb2 and kilncontrolller modules
 * Run pylint or similar to ensure code uniformity and adherence to proper python programming standards and conventions
