@@ -95,9 +95,10 @@ def update_user(user_id):
     user.phone_number = request.args.get('phone_number[%r]' % user_id)
     user.is_admin = (request.args.get('is_admin[%r]' % user_id) == 'on')
     user.is_auth = (request.args.get('is_auth[%r]' %user_id) == 'on')
+    app.db.session.commit()
     flash("User %s updated successfully" % user.username)
   users = model.User.query.all()
-  return render_template('show_users.html', users=users)
+  return redirect(url_for('show_users', users=users))
 
 
 @app.route('/users/<int:user_id>/delete_user', methods=['GET', 'POST'])
@@ -111,7 +112,7 @@ def delete_user(user_id):
   app.db.session.delete(user)
   app.db.session.commit()
   users = model.User.query.all()
-  return render_template('show_users.html', users=users)
+  return redirect(url_for('show_users', users=users))
 
 def parse_job(job_data):
   steps = []
