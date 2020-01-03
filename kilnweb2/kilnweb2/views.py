@@ -54,6 +54,10 @@ def register():
 @login_required
 def show_jobs():
   form = NewJobForm()
+  if not current_user.is_auth and not current_user.is_admin:
+    flash('You must be authorized by an administrator to use the kiln')
+    logout_user()
+    return redirect(url_for('login'))
   if form.validate_on_submit():
     name = form.name.data
     comment = form.comment.data
@@ -62,13 +66,14 @@ def show_jobs():
     app.db.session.add(job)
     app.db.session.commit()
     flash("added job %r" % (name))
-    return redirect(url_for('show_jobs'))
   kc = kiln_command.KilnCommand()
   run_state, running_job_id = kc.status()
   running_job_info = None
   if running_job_id is not None:
     running_job_info = model.Job.query.filter_by(id=running_job_id).first()
   jobs = model.Job.query.all()
+  form.name.data = ""
+  form.comment.data = ""
   return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info, form=form)
 
 @app.route('/users', methods = ['GET', 'POST'])

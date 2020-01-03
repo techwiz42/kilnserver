@@ -19,7 +19,7 @@
   </p>
   {% if current_user.is_auth %}
   <form action="" method="post">
-
+  {{ form.hidden_tag() }}
     <p>
       {{ form.name.label }}
       {{ form.name(size=32) }}
