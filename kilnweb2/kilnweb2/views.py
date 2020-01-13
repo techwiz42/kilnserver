@@ -8,7 +8,6 @@ from flask_login import current_user, login_user, logout_user, login_required
 from kilnweb2.model import User, Job
 from kilnweb2 import app
 from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm
-
 # Route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -143,9 +142,11 @@ def add_job(name, comment):
 @app.route('/job/<int:job_id>/steps')
 @login_required
 def show_job_steps(job_id):
+  kc = kiln_command.KilnCommand()
+  run_state, running_job_id = kc.status()
   job = model.Job.query.filter_by(id=job_id).first()
   job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
-  return render_template('show_job_steps.html', job=job, job_steps=job_steps)
+  return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
 
 @app.route('/job/<int:job_id>/steps/update', methods=['POST'])
 @login_required

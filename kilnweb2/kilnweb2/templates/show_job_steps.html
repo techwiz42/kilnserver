@@ -1,8 +1,27 @@
 {% extends "bootstrap/base.html" %}
 {% block body %}
 <div class="container">
-  <div class="h1">Kiln Server</div>
-  <div class="h2">Job: {{ job.name }}</div>
+  <div class="h1"><a href="{{ url_for('show_jobs') }}">Kiln Server</a></div>
+  <hr/>
+  <div align="right">
+    {% if current_user.is_anonymous %}
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('register') }}">Register</a>
+    {% else %}
+      {{ current_user.username }}
+      <a href="{{ url_for('show_jobs') }}">Show Jobs</a>
+      {% if current_user.is_admin %}
+        <a href="{{ url_for('show_users') }}">Show Users</a>
+      {% endif %}
+      <a href="{{ url_for('logout') }}">Logout</a>
+    {% endif %}
+  </div>
+  <div class=metanav>
+  </div>
+  {% for message in get_flashed_messages() %}
+    <div class=flash>{{ message }}</div>
+  {% endfor %}
+  <div class="h2">Job: {{ job.name }} Run State: {{ run_state }}</div>
   <div class="textarea">{{ job.comment }}</div>
     <form action="{{ url_for('update_job_steps', job_id=job.id) }}" method="post">
       <div class="vertical-center">
@@ -15,6 +34,7 @@
           <div class="col-md-2"><b>Threshold</b></div>
           <div class="col-md-2"><b>Actions</b></div>
         </div>
+        <div  style="overflow-y: scroll; height:200px; overflow-x:hidden">
         {% for step in job_steps %}
         <div class="row">
           <div class="form-group">
@@ -30,6 +50,7 @@
           </div>
         </div>
         {% endfor %}
+        </div>
         <div class="row"><input type="submit" value="Update Job"/></div>
     </div> <!-- end jumbotron -->
       </div> <!-- end jumbotron offset -->
@@ -40,6 +61,8 @@
   <li><a href="{{ url_for('show_jobs') }}">Back to job list</a></li>
   <li><a href="{{ url_for('start_job', job_id=job.id) }}">Start</a></li>
   <li>Pause Job</li> <!-- TODO -->
+  <li>Resume Job</li> <!-- TODO -->
+  <li>Stop Job</li> <!-- TODO -->
   <li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete Job</a></li>
   </ul>
 </div>
