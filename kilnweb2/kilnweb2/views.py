@@ -70,7 +70,7 @@ def show_jobs():
   running_job_info = None
   if running_job_id is not None:
     running_job_info = model.Job.query.filter_by(id=running_job_id).first()
-  jobs = model.Job.query.all()
+  jobs = model.Job.query.filter_by(user_id=current_user.id)
   form.name.data = ""
   form.comment.data = ""
   return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info, form=form)
@@ -145,6 +145,10 @@ def show_job_steps(job_id):
   kc = kiln_command.KilnCommand()
   run_state, running_job_id = kc.status()
   job = model.Job.query.filter_by(id=job_id).first()
+  if not job.user_id == current_user.id:
+    flash("Accessing someone else's job is strictly not allowed.")
+    flash("This infraction has been logged.")
+    return  redirect(url_for('show_jobs'))
   job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
 

@@ -5,7 +5,8 @@ create table jobs (
   name text not null,
   comment text not null,
   created integer not null,
-  modified integer
+  modified integer,
+  units integer default 1 not null
 );
 
 drop table if exists job_steps;
@@ -29,4 +30,6 @@ create table users(
   phone_number text,
   password_hash  text
 );
+
+insert into users(username) values=('admin');
 

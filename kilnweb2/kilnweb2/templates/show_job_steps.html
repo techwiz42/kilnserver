@@ -40,17 +40,22 @@
           <div class="form-group">
             <input type="hidden" name="id" value="{{ step.id }}"/>
             <div class="col-md-2"><input type="text" id='target' size="6" name="target[{{ step.id }}]" style="text-align:right;" value="{{ step.target }}"/>&deg;&nbsp;</div>
-            <div class="col-md-2"><input type="text" id='rate' size="6" name="rate[{{ step.id }}]" style="text-align:right;" value="{{ step.rate }}"/>/min&nbsp;</div>
-            <div class="col-md-2"><input type="text" id='dwell' size="6" name="dwell[{{ step.id }}]" style="text-align:right;" value="{{ step.dwell }}"/>min&nbsp;</div>
-            <div class="col-md-2"><input type="text"  id='threshold' size="6" name="threshold[{{ step.id }}]" style="text-align:right;" value="{{ step.threshold }}"/>&deg;F&nbsp;</div>
+            <div class="col-md-2"><input type="text" id='rate' size="6" name="rate[{{ step.id }}]" style="text-align:right;" value="{{ step.rate }}"/>&deg;/min</div>
+            <div class="col-md-2"><input type="text" id='dwell' size="6" name="dwell[{{ step.id }}]" style="text-align:right;" value="{{ step.dwell }}"/>min</div>
+            <div class="col-md-2"><input type="text"  id='threshold' size="6" name="threshold[{{ step.id }}]" style="text-align:right;" value="{{ step.threshold }}"/>&deg;</div>
             <div class="col-md-2">
-              <a title="Delete step" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}"><i class="glyphicon glyphicon-remove"></i></a>&nbsp;&nbsp;
-              <a title="Add a step" href="{{ url_for('add_job_step', job_id=job.id) }}"><i class="glyphicon glyphicon-plus"></i></a>
+              <a title="Delete step" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}"><i class="glyphicon glyphicon-remove"></i></a>
             </div>
           </div>
-        </div>
+        </div> <!-- end row -->
         {% endfor %}
-        </div>
+         <div class="row">
+           <div class="col-md-2"></div>
+           <div class="col-md-2"></div>
+           <div class="col-md-2"></div>
+           <div class="col-md-2"></div>
+           <div class="col-md-2"><a title="Add a step" href="{{ url_for('add_job_step', job_id=job.id) }}"><i class="glyphicon glyphicon-plus"></i></a></div></div>
+        </div>  <!-- end scrolling window -->
         <div class="row"><input type="submit" value="Update Job"/></div>
     </div> <!-- end jumbotron -->
       </div> <!-- end jumbotron offset -->
@@ -58,12 +63,12 @@
     </form>
     <div class=row></div>
   <ul>
-  <li><a href="{{ url_for('show_jobs') }}">Back to job list</a></li>
-  <li><a href="{{ url_for('start_job', job_id=job.id) }}">Start</a></li>
-  <li>Pause Job</li> <!-- TODO -->
-  <li>Resume Job</li> <!-- TODO -->
-  <li>Stop Job</li> <!-- TODO -->
-  <li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete Job</a></li>
+    <li><a href="{{ url_for('show_jobs') }}">Back to job list</a></li>
+    <li><a href="{{ url_for('start_job', job_id=job.id) }}">Start</a></li>
+    <li><a href="{{ url_for('pause_job') }}">Pause Job</a></li>
+    <li><a href="{{ url_for('resume_job') }}">Resume Job</a></li>
+    <li><a href="{{ url_for('stop_job') }}">Stop Job</a></li>
+    <li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete Job</a></li>
   </ul>
 </div>
 {% endblock %}

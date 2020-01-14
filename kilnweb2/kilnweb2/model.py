@@ -1,11 +1,17 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+import enum
+from sqlalchemy import Integer, Enum
 from kilnweb2 import app
 from kilnweb2 import login
 
 @login.user_loader
 def load_user(id):
   return User.query.get(int(id))
+
+class Units(enum.Enum):
+  farenheidt = 1
+  celsius = 2
 
 class Job(app.db.Model):
   __tablename__ = 'jobs'
@@ -15,6 +21,7 @@ class Job(app.db.Model):
   comment = app.db.Column(app.db.Text)
   created = app.db.Column(app.db.DateTime)
   modified = app.db.Column(app.db.DateTime)
+  units = app.db.Column(Enum(Units))
   steps = app.db.relationship('JobStep', backref='job')
 
   def __init__(self, user_id, name, comment, created, modified):
@@ -23,13 +30,14 @@ class Job(app.db.Model):
     self.name = name
     self.created = created
     self.modified = modified
+    self.units = Units.farenheidt
 
   def __getitem__(self, key):
     if key in self.__dict__:
       return self.__dict__[key]
 
   def __repr__(self):
-    return '<Job %r, name=%r, user_id=%r, comment=%r, created=%r, modified=%r>' % (self.id, self.name, self.user_id, self.comment, self.created, self.modified)
+    return '<Job %r, name=%r, user_id=%r, comment=%r, created=%r, modified=%r, units=%r>' % (self.id, self.name, self.user_id, self.comment, self.created, self.modified, self.units)
 
 class JobStep(app.db.Model):
   __tablename__ = 'job_steps'
