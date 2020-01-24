@@ -149,6 +149,10 @@ def show_job_steps(job_id):
     flash("Accessing someone else's job is strictly not allowed.")
     flash("This infraction has been logged.")
     return  redirect(url_for('show_jobs'))
+  # Append an empty row.
+  step = model.JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
+  app.db.session.add(step)
+  app.db.session.commit()
   job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
 
@@ -156,12 +160,17 @@ def show_job_steps(job_id):
 @login_required
 def update_job_steps(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
+  __update_steps(job)
+  flash("Job %s updated" % job.name)
+  return redirect(url_for('show_job_steps', job_id=job.id))
+
+def __update_steps(job):
   for step_id in request.form.getlist('id'):
     target = int(request.form["target[%s]" % step_id])
     rate = int(request.form["rate[%s]" % step_id])
     dwell = int(request.form["dwell[%s]" % step_id])
     threshold = int(request.form["threshold[%s]" % step_id])
-    step_record = model.JobStep.query.filter_by(job_id=job_id, id=int(step_id)).first()
+    step_record = model.JobStep.query.filter_by(job_id=job.id, id=int(step_id)).first()
     if step_record is None:
       step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
     else:
@@ -171,17 +180,13 @@ def update_job_steps(job_id):
       step_record.threshold = threshold
     app.db.session.add(step_record)
   app.db.session.commit()
-  flash("Job %s updated" % job.name)
-  return redirect(url_for('show_job_steps', job_id=job.id))
 
 
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
 @login_required
 def add_job_step(job_id):
   job = model.Job.query.filter_by(id=job_id).first()
-  step = model.JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
-  app.db.session.add(step)
-  app.db.session.commit()
+  __update_steps(job)
   flash("Job step added.")
   return redirect(url_for('show_job_steps', job_id=job_id))
 
