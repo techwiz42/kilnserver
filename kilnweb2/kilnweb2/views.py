@@ -156,6 +156,20 @@ def show_job_steps(job_id):
   job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
 
+@app.route('/job/<int:job_id>/remove_step')
+@login_required
+def remove_job_step(job_id):
+  kc = kiln_command.KilnCommand()
+  run_state, running_job_id = kc.status()
+  job = model.Job.query.filter_by(id=job_id).first()
+  if not job.user_id == current_user.id:
+    flash("Accessing someone else's job is strictly not allowed.")
+    flash("This infraction has been logged.")
+    return  redirect(url_for('show_jobs'))
+  job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
+  return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
+
+
 @app.route('/job/<int:job_id>/steps/update', methods=['POST'])
 @login_required
 def update_job_steps(job_id):
@@ -181,7 +195,6 @@ def __update_steps(job):
     app.db.session.add(step_record)
   app.db.session.commit()
 
-
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
 @login_required
 def add_job_step(job_id):
@@ -198,7 +211,7 @@ def delete_job_step(job_id, step_id):
   flash("Job step %d from job %s deleted." % (step_id, job.name))
   app.db.session.delete(step)
   app.db.session.commit()
-  return redirect(url_for('show_job_steps', job_id=job_id))
+  return redirect(url_for('remove_job_step', job_id=job_id))
 
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
 @login_required
