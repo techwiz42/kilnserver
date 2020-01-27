@@ -52,8 +52,8 @@
           <div class="col-md-1"><b>Units</b></div>
           <div class="col-md-2">
             <select class="selectpicker" id="units" name="units" onchange="change_units(this)">
-              <option value="F">Farenheidt</option>
-              <option value="C">Celsius</option>
+              <option value="F" {% if job.units=="F" %} selected="selected" {% endif %}>Farenheidt</option>
+              <option value="C" {% if job.units=="C" %} selected="selected" {% endif %}>Celsius</option>
             </select>
           </div>
         </div>
