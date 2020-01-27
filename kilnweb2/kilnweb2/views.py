@@ -24,7 +24,6 @@ def login():
   return render_template('login.html', title='Sign In', form=form)
 
 @app.route('/logout')
-@login_required
 def logout():
   logout_user()
   return redirect(url_for('login'))
@@ -149,9 +148,7 @@ def show_job_steps(job_id):
     flash("This infraction has been logged.")
     return  redirect(url_for('show_jobs'))
   # Append an empty row.
-  step = model.JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
-  app.db.session.add(step)
-  app.db.session.commit()
+
   job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
 
@@ -179,6 +176,9 @@ def update_job_steps(job_id):
     return  redirect(url_for('show_jobs'))
   __update_steps(job)
   flash("Job %s updated" % job.name)
+  step = model.JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
+  app.db.session.add(step)
+  app.db.session.commit()
   return redirect(url_for('show_job_steps', job_id=job.id))
 
 def __update_steps(job):
@@ -224,6 +224,19 @@ def delete_job_step(job_id, step_id):
   app.db.session.commit()
   return redirect(url_for('remove_job_step', job_id=job_id))
 
+@app.route('/job/<int:job_id>/change_units/<units>', methods=['POST'])
+@login_required
+def change_units(job_id, units):
+  job = model.Job.query.filter_by(id=job_id).first()
+  if not job.user_id == current_user.id:
+    flash("Accessing someone else's job is strictly not allowed.")
+    flash("This infraction has been logged.")
+    return redirect(url_for('show_jobs'))
+  job.units = units
+  app.db.session.commit()
+  flash("Units successfully changed to %s" % units)
+  return redirect(url_for('show_job_steps', job_id=job_id))
+
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
 @login_required
 def delete_job(job_id):
@@ -258,18 +271,6 @@ def start_job(job_id):
     flash("Job %s started." % job.name)
     started = True
   return render_template('start_job.html', job=job, started=started)
-
-@app.route('/job/<int:job_id>/units', methods=['GET', 'POST'])
-@login_required
-def change_units(job_id):
-  job = model.Job.query.filter_by(id=job_id).first()
-  if not job.user_id == current_user.id:
-    flash("Accessing someone else's job is strictly not allowed.")
-    flash("This infraction has been logged.")
-    return  redirect(url_for('show_jobs'))
-  #TODO get units from request and update the job object, then commit
-  return redirect(url_for('show_job_steps', job_id=job_id))
-
 
 @app.route('/job/pause')
 @login_required

@@ -9,10 +9,6 @@ from kilnweb2 import login
 def load_user(id):
   return User.query.get(int(id))
 
-class Units(enum.Enum):
-  farenheidt = 1
-  celsius = 2
-
 class Job(app.db.Model):
   __tablename__ = 'jobs'
   id = app.db.Column(app.db.Integer, primary_key=True)
@@ -21,16 +17,16 @@ class Job(app.db.Model):
   comment = app.db.Column(app.db.Text)
   created = app.db.Column(app.db.DateTime)
   modified = app.db.Column(app.db.DateTime)
-  units = app.db.Column(Enum(Units))
+  units = app.db.Column(app.db.Text, default="F")
   steps = app.db.relationship('JobStep', backref='job')
 
-  def __init__(self, user_id, name, comment, created, modified):
+  def __init__(self, user_id, name, comment, created, modified, units="F"):
     self.comment = comment
     self.user_id = user_id
     self.name = name
     self.created = created
     self.modified = modified
-    self.units = Units.farenheidt
+    self.units = units
 
   def __getitem__(self, key):
     if key in self.__dict__:

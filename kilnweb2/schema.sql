@@ -6,7 +6,7 @@ create table jobs (
   comment text not null,
   created integer not null,
   modified integer,
-  units integer default 1 not null
+  units text default "F" not null
 );
 
 drop table if exists job_steps;
@@ -31,5 +31,5 @@ create table users(
   password_hash  text
 );
 
-insert into users(username) values=('admin');
+insert into users(username, email_address) values('admin', 'changeme');
 

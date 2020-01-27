@@ -1,4 +1,25 @@
 {% extends "bootstrap/base.html" %}
+{% block head %}
+  {{ super() }}
+    <script src="{{ url_for('static', filename='jquery_3.4.1_min.js') }}"></script>
+    <script type="text/javascript">
+      function change_units(selector) {
+        data = selector.value;
+        $.ajax({
+          url: "change_units/" + data,
+          type: 'POST',
+          success: function(response) {
+            console.log("Units successfully changed to %s" % data);
+          },
+          error: function(response) {
+            console.log("Failed to change units");
+          }
+        });
+      }
+
+    </script>
+
+{% endblock %}
 {% block body %}
 <div class="container">
   <div class="h1"><a href="{{ url_for('show_jobs') }}">Kiln Server</a></div>
@@ -30,9 +51,9 @@
         <div class="row">
           <div class="col-md-1"><b>Units</b></div>
           <div class="col-md-2">
-            <select class="selectpicker" id="units" name="units">
-              <option>Farenheidt</option>
-              <option>Celsius</option>
+            <select class="selectpicker" id="units" name="units" onchange="change_units(this)">
+              <option value="F">Farenheidt</option>
+              <option value="C">Celsius</option>
             </select>
           </div>
         </div>
