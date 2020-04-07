@@ -147,8 +147,6 @@ def show_job_steps(job_id):
     flash("Accessing someone else's job is strictly not allowed.")
     flash("This infraction has been logged.")
     return  redirect(url_for('show_jobs'))
-  # Append an empty row.
-
   job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
   return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
 
@@ -176,13 +174,11 @@ def update_job_steps(job_id):
     return  redirect(url_for('show_jobs'))
   __update_steps(job)
   flash("Job %s updated" % job.name)
-  step = model.JobStep(job=job, target=0, rate=0, dwell=0, threshold=0)
-  app.db.session.add(step)
-  app.db.session.commit()
   return redirect(url_for('show_job_steps', job_id=job.id))
 
 def __update_steps(job):
   for step_id in request.form.getlist('id'):
+    #update existing steps  
     target = int(request.form["target[%s]" % step_id])
     rate = int(request.form["rate[%s]" % step_id])
     dwell = int(request.form["dwell[%s]" % step_id])
@@ -196,6 +192,12 @@ def __update_steps(job):
       step_record.dwell = dwell
       step_record.threshold = threshold
     app.db.session.add(step_record)
+  #Add a new step  
+  target = int(request.form["target"])
+  rate = int(request.form["rate"])
+  dwell = int(request.form["dwell"])
+  threshold = int(request.form["threshold"])
+  step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
   app.db.session.commit()
 
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
