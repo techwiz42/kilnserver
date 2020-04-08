@@ -75,13 +75,23 @@
             <div class="col-md-2"><input type="text" id='dwell' size="6" name="dwell[{{ step.id }}]" style="text-align:right;" value="{{ step.dwell }}"/>min</div>
             <div class="col-md-2"><input type="text"  id='threshold' size="6" name="threshold[{{ step.id }}]" style="text-align:right;" value="{{ step.threshold }}"/>&deg;</div>
             <div class="col-md-2">
-              <a title="Delete step" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}"><i class="glyphicon glyphicon-remove"></i></a>
+              <a title="Delete Step" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}">
+	        <i class="glyphicon glyphicon-remove" style="color:red"></i>
+	      </a>
             </div>
           </div>
         </div> <!-- end row -->
         {% endfor %}
+        <div class="row">
+          <div class="form-group">
+            <div class="col-md-2"><input type="text" id="target" size="6" name="target" style="text-align:right;" value=""/>&deg;</div>	  
+            <div class="col-md-2"><input type="text" id="rate" size="6" name="rate" style="text-align:right;" value=""/>&deg;/min</div>
+	    <div class="col-md-2"><input type="text" id="dwell" size="6" name="dwell" style="text-align:right;" value=""/>min</div>
+	    <div class="col-md-2"><input type="text" id="threshold" size="6" name="threshold" style="text-align:right;" value=""/>&deg;</div>
+	    <div class="col-md-2"><input type="submit" value="Add Step"/></div>
+	  </div>
+	</div>
         </div>  <!-- end scrolling window -->
-        <div class="row"><input type="submit" value="Add Step"/></div>
     </div> <!-- end jumbotron -->
       </div> <!-- end jumbotron offset -->
       </div> <!-- end vertical-center -->
