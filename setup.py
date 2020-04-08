@@ -22,11 +22,12 @@ setup(
       'kilnweb': ['static/*.css', 'templates/*.html'],
     },
     install_requires = [
-      'Flask >= 0.10.1',
+      'Flask >= 1.1.1',
       'flask-sqlalchemy',
       'numpy >= 1.7.1',
       'flask-login',
       'flask-wtf',
+      'werkzeug >= 1.0',
       'flask_bootstrap',
       'flask-migrate'
     ],
