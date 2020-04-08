@@ -30,6 +30,7 @@
     </p>
     <p>{{ form.submit() }}</p>
   </form>
+  <a href="{{ url_for('halt_kilnserver' }}">Halt Kiln Server</a>
   {% endif %}
   <ul class=entries>
   {% for job in jobs %}

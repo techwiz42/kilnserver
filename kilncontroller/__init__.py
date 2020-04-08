@@ -225,14 +225,15 @@ class KilnCommandProcessor:
     self.job_id = None
     self.kiln_controller = None
     self.kiln_controller_thread = None
+    self.RUN_SERVER = True
 
   def socket_loop(self):
     self.sock.listen(1)
-    while True:
+    while self.RUN_SERVER:
       try:
         conn, client_addr = self.sock.accept()
         self.logger.debug("connection from", client_addr)
-        while True:
+        while self.RUN_SERVER:
           data = conn.recv(1024)
           if data:
             # TODO: Document full set of commands with JSON examples, identifying required parameters.
@@ -277,6 +278,13 @@ class KilnCommandProcessor:
                 state = self.kiln_controller.run_state
               response = json.dumps({'response': 'status', 'state': state, 'job_id': self.job_id if self.job_id else str(-1)})
               conn.sendall(_to_bytes(response + "\n"))
+            elif command_data['command'].upper() == 'HALT_KILNSERVER':
+              self.RUN_SERVER = False
+              self.kiln_controller = None
+              self.kiln_controller_thread = None
+              response = json.dumps({'response': 'Kiln Controller HALTED'})
+              conn.sendall(_to_bytes(response + "\n"))
+              break
           else:
             break
       finally:

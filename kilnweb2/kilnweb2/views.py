@@ -74,6 +74,16 @@ def show_jobs():
   form.comment.data = ""
   return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info, form=form)
 
+@app.route('halt_kilnserver', methods = ['GET', 'POST'])
+@login_required
+def halt_kilnserver():
+  if not current_user.is_admin:
+    flash("%s is not authorised to use this command.  This is a serious infraction and will be reported") % current_user.name
+    return redirect(url_for(show_jobs))
+  kc = kiln_command.KilnCommand
+  state = kc.halt()
+  return
+
 @app.route('/users', methods = ['GET', 'POST'])
 @login_required
 def show_users():
