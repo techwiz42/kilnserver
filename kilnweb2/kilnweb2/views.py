@@ -80,9 +80,9 @@ def halt_kilnserver():
   if not current_user.is_admin:
     flash("%s is not authorised to use this command.  This is a serious infraction and will be reported") % current_user.name
     return redirect(url_for(show_jobs))
-  kc = kiln_command.KilnCommand
+  kc = kiln_command.KilnCommand()
   state = kc.halt()
-  return
+  return state
 
 @app.route('/users', methods = ['GET', 'POST'])
 @login_required
