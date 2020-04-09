@@ -57,7 +57,7 @@ class KilnCommand:
     data = self.sock.recv(1024)
     if data:
       state = json.loads(data)
-      return [state]
+      return state
     else:
       return "UNKNOWN"
 
