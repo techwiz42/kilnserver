@@ -34,7 +34,18 @@
   {% endif %}
   <ul class=entries>
   {% for job in jobs %}
-    <li><a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.name }}</a> ({{ job.steps|length }}) <a href="{{ url_for('start_job', job_id=job.id) }}">Start</a> <a href="{{ url_for('delete_job', job_id=job.id) }}">Delete</a>
+    <li><a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.name }}</a> ({{ job.steps|length }})
+      {% if run_state != "IDLE" %}
+        <a href="{{ url_for('stop_job') }}">Stop</a>&nbsp;
+      {% else %}
+        <a href="{{ url_for('start_job', job_id=job.id) }}">Start</a>
+      {% endif %}
+      {% if run_state == "RUN" %}
+        <a href="{{ url_for('pause_job') }}">Pause</a>&nbsp;
+      {% elif run_state == "PAUSE" %}
+        <a href="{{ url_for('resume_job') }}">Resume</a>&nbsp;
+      {% endif %}
+      <a href="{{ url_for('delete_job', job_id=job.id) }}">Delete</a>
   {% else %}
     <li><em>No jobs found.</em>
   {% endfor %}
