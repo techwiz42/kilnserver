@@ -21,6 +21,7 @@ class KilnController:
     self.conn = conn
     self.segments = segments
     self.run_state = None
+    self.job_id = None  # this is the ID of the running job, if any.
     self.build_temp_table()
     #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
     self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
@@ -222,7 +223,6 @@ class KilnCommandProcessor:
     self.sock.bind(self.sock_path)
     os.chmod(self.sock_path, 0o777)
 
-    self.job_id = None
     self.kiln_controller = None
     self.kiln_controller_thread = None
     self.RUN_SERVER = True
@@ -255,9 +255,9 @@ class KilnCommandProcessor:
               conn.sendall(_to_bytes("PONG\n"))
             elif command_data['command'].upper() == 'START':
               # start a job
-              self.job_id = command_data['job_id']
               # TODO: Add failure handling code
               self.kiln_controller = KilnController(command_data['steps'], conn)
+              self.kiln_controller.job_id = command_data['job_id']
               self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
               self.kiln_controller_thread.start()
             elif command_data['command'].upper() == 'STOP':
@@ -265,7 +265,7 @@ class KilnCommandProcessor:
                 self.kiln_controller.stop()
                 self.kiln_controller_thread.join(30) # 30 sec timeout
                 self.kiln_controller = None
-                self.job_id = None
+                self.kiln_controller.job_id = None
             elif command_data['command'].upper() == 'PAUSE':
               if self.kiln_controller is not None:
                 self.kiln_controller.pause()
@@ -276,7 +276,7 @@ class KilnCommandProcessor:
               state = 'IDLE'
               if self.kiln_controller is not None:
                 state = self.kiln_controller.run_state
-              response = json.dumps({'response': 'status', 'state': state, 'job_id': self.job_id if self.job_id else str(-1)})
+              response = json.dumps({'response': 'status', 'state': state, 'job_id': self.kiln_controller.job_id if self.kiln_controller.job_id else str(-1)})
               conn.sendall(_to_bytes(response + "\n"))
             elif command_data['command'].upper() == 'HALT_KILNSERVER':
               self.RUN_SERVER = False
