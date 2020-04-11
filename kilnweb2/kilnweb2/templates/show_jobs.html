@@ -37,15 +37,15 @@
     <li>
       Run State = {{ run_state }}, Job ID = {{ job.id }}, Running Job ID = {{ running_job_id }}
       <a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.name }}</a> ({{ job.steps|length }})
-      {% if job_id == running_job_id && job_state != "IDLE"%}
+      {% if job_id == running_job_id and job_state != "IDLE" %}
         <a href="{{ url_for('stop_job', job_id=job.id) }}">Stop</a>&nbsp;
-        {% if run_state = "RUN" %}
+        {% if run_state == "RUN" %}
           <a href="{{ url_for('pause_job', job_id=job.id) }}">Pause</a>&nbsp;
         {% elif run_state == "PAUSE" %}
           <a href="{{ url_for('resume_job', job_id=job.id) }}">Resume</a>&nbsp;
         {% endif %}
         <a href="{{ url_for('delete_job', job_id=job.id) }}" disable="disabled">Delete</a>
-      {% elif job_id != running_job_id && job_state != "IDLE" %}
+      {% elif job_id != running_job_id and not job_state == "IDLE" %}
         <a href="{{ url_for('start_job', job_id=job.id) }}" disabled="disabled">Start</a>&nbsp;
         <a href="{{ url_for('pause_job', job_id=job.id) }}" disabled="disabled">Pause</a>&nbsp;
         <a href="{{ url_for('resume_job', job_id=job.id) }}" disabled="disabled">Resume</a>&nbsp;
