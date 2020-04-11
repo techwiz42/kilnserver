@@ -274,9 +274,11 @@ class KilnCommandProcessor:
                 self.kiln_controller.resume()
             elif command_data['command'].upper() == 'STATUS':
               state = 'IDLE'
+              job_id = str(-1)
               if self.kiln_controller is not None:
                 state = self.kiln_controller.run_state
-              response = json.dumps({'response': 'status', 'state': state, 'job_id': self.kiln_controller.job_id if self.kiln_controller.job_id else str(-1)})
+                job_id = self.kiln_controller.job_id
+              response = json.dumps({'response': 'status', 'state': state, 'job_id': job_id })
               conn.sendall(_to_bytes(response + "\n"))
             elif command_data['command'].upper() == 'HALT_KILNSERVER':
               self.RUN_SERVER = False
