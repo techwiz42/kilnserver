@@ -264,8 +264,8 @@ class KilnCommandProcessor:
               if self.kiln_controller is not None:
                 self.kiln_controller.stop()
                 self.kiln_controller_thread.join(30) # 30 sec timeout
-                self.kiln_controller = None
                 self.kiln_controller.job_id = None
+                self.kiln_controller = None
             elif command_data['command'].upper() == 'PAUSE':
               if self.kiln_controller is not None:
                 self.kiln_controller.pause()
