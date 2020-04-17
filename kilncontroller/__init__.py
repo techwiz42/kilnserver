@@ -232,7 +232,7 @@ class KilnCommandProcessor:
     while self.RUN_SERVER:
       try:
         conn, client_addr = self.sock.accept()
-        self.logger.debug("connection from", client_addr)
+        self.logger.debug("connection from " + str(client_addr))
         while self.RUN_SERVER:
           data = conn.recv(1024)
           if data:
