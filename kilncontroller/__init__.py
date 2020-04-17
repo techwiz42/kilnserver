@@ -199,7 +199,7 @@ class KilnController:
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
       self.runtime = time.time() - self.start      #present time since start, seconds
-      self.logger.debug("runtime = ", (self.runtime/60), " minutes; pausetime = ", (self.pausetime/60), " minutes")
+      self.logger.debug("runtime = ", '%.3f' % (self.runtime/60), " minutes; pausetime = ", '%.3f' % (self.pausetime/60), " minutes")
 
     #end of while loop
 
@@ -283,10 +283,9 @@ class KilnCommandProcessor:
             elif command_data['command'].upper() == 'HALT_KILNSERVER':
               self.RUN_SERVER = False
               self.kiln_controller = None
-              self.kiln_controller_thread = None
               response = json.dumps({'response': 'Kiln Controller HALTED'})
               conn.sendall(_to_bytes(response + "\n"))
-              break
+              self.kiln_controller_thread = None
           else:
             break
       finally:
