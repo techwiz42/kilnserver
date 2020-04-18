@@ -199,7 +199,7 @@ class KilnController:
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
       self.runtime = time.time() - self.start      #present time since start, seconds
-      self.logger.debug("runtime = %.3f % (self.runtime/60), minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
+      self.logger.debug("runtime = %.3f, minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
 
     #end of while loop
 
