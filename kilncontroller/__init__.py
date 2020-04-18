@@ -191,7 +191,7 @@ class KilnController:
       if den != 0: result = num/den   # should be between 0 and 1
       if den == 0: result = 0
       if den == 0: self.logger.debug("denominator = 0")
-      self.logger.debug(" num = %.5f % num,den = %.5f % den, output = %.5f" %(num, den, result))
+      self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
 
       self.kiln_on()
       time.sleep(proportion*interval*result)   # wait for a number of seconds
