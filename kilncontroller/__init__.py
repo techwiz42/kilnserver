@@ -135,7 +135,7 @@ class KilnController:
       setpoint = self.set_point()  # degrees F
       e = tmeas - setpoint # present error degrees F
       d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
-      self.logger.debug("e = %.3f % d = %.3f"  % (e, d))
+      self.logger.debug("e = %.3f, d = %.3f"  % (e, d))
       self.logger.debug("measured temperature = %.3f,  setpoint =  %.3f"  % (tmeas, setpoint))
       lasterr = e
 
