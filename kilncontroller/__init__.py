@@ -135,8 +135,8 @@ class KilnController:
       setpoint = self.set_point()  # degrees F
       e = tmeas - setpoint # present error degrees F
       d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
-      #self.logger.debug("e = ",'%.3f' % e, "  d = " '%.3f' % d)
-      #self.logger.debug("measured temperature = ", '%.3f' % tmeas, "  setpoint = ", '%.3f' % setpoint)
+      self.logger.debug("e = %.3f % d = %.3f"  % (e, d))
+      self.logger.debug("measured temperature = %.3f,  setpoint =  %.3f"  % (tmeas, setpoint))
       lasterr = e
 
       tempdata.append(tmeas)   #record data for plotting later
@@ -191,7 +191,7 @@ class KilnController:
       if den != 0: result = num/den   # should be between 0 and 1
       if den == 0: result = 0
       if den == 0: self.logger.debug("denominator = 0")
-      #self.logger.debug(" num = ",'%.5f' % num,"den = ",'%.5f' % den,"output = ",'%.5f' % result)
+      self.logger.debug(" num = %.5f % num,den = %.5f % den, output = %.5f" %(num, den, result))
 
       self.kiln_on()
       time.sleep(proportion*interval*result)   # wait for a number of seconds
@@ -199,7 +199,7 @@ class KilnController:
       remainder = interval - proportion*interval*result  #should be positive, but...
       if remainder > 0: time.sleep(interval - proportion*interval*result) 
       self.runtime = time.time() - self.start      #present time since start, seconds
-      #self.logger.debug("runtime = ", '%.3f' % (self.runtime/60), " minutes; pausetime = ", '%.3f' % (self.pausetime/60), " minutes")
+      self.logger.debug("runtime = %.3f % (self.runtime/60), minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
 
     #end of while loop
 
