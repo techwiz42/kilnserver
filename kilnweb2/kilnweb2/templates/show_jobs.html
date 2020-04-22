@@ -7,7 +7,7 @@
   No job running.
   {% else %}
   Running job: <a href="{{ url_for('show_job_steps', job_id=running_job.id) }}">{{ running_job.name}} - {{ running_job.comment }}</a> ({{ running_job.steps|length }})
-  owned by: {{ running_job_user_id }}
+  owned by: {{ running_job_user }}
     {% endif %}
   </p>
   {% if current_user.is_auth %}
