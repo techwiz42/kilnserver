@@ -69,10 +69,11 @@ def show_jobs():
   running_job_info = None
   if running_job_id is not None:
     running_job_info = model.Job.query.filter_by(id=running_job_id).first()
+    running_job_user = model.User.query.filter_by(id=running_job_info.user_id)
   jobs = model.Job.query.filter_by(user_id=current_user.id)
   form.name.data = ""
   form.comment.data = ""
-  return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info, form=form)
+  return render_template('show_jobs.html', jobs=jobs, run_state=run_state, running_job_id=running_job_id, running_job=running_job_info, running_job_user=running_job_user, form=form)
 
 @app.route('/halt_kilnserver', methods = ['GET', 'POST'])
 @login_required
