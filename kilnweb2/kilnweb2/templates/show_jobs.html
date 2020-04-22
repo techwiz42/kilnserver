@@ -7,7 +7,8 @@
   No job running.
   {% else %}
   Running job: <a href="{{ url_for('show_job_steps', job_id=running_job.id) }}">{{ running_job.name}} - {{ running_job.comment }}</a> ({{ running_job.steps|length }})
-  {% endif %}
+  Job owned by: {{ running_job.users.username }}
+    {% endif %}
   </p>
   {% if current_user.is_auth %}
   <form action="" method="post">
