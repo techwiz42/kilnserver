@@ -67,6 +67,8 @@ def show_jobs():
   kc = kiln_command.KilnCommand()
   run_state, running_job_id = kc.status()
   running_job_info = None
+  running_job_id = None
+  running_job_user = None
   if running_job_id is not None:
     running_job_info = model.Job.query.filter_by(id=running_job_id).first()
     if running_job_info is not None:
