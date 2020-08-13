@@ -27,8 +27,21 @@ It is initialized from the command line by invoking
 flask db init
 ~~~
 
-The flask app lives in __init__.py and is invoked from a command window.  cd to the upper-level
-kilnweb2 directory and invoke 
+For the image supplied with the project, invoke the virtual environment in a command window. The virtual environment can be invoked from any directory. Invoke it like so:
+
+~~~
+>workon kilnsvr
+~~~ 
+
+The kilncontroller must be run with root privileges. Change directory to the top level directory, be sure to activate the virtual environment and start the kilncontroller:
+
+~~~
+>sudo python ./__init__.py
+~~~
+
+The flask app lives in kilncontroller/kilnweb2/kilnweb2/\__init__.py and is invoked from a command window.  cd to the upper-level
+kilnweb2 directory and invoke. Be sure to run in the appropriate virtual environment.
+
 ~~~
 >flask run
 ~~~
