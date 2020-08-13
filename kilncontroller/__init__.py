@@ -100,7 +100,7 @@ class KilnController:
 
   # Convert celsius temperatures to Farenheit. If units are already F, don't convert.
   def to_F(self, temperature):
-    if self.units == constants.FARENHEIT:
+    if self.units == 'F':
       return temperature
     return temperature * 9 / 5 + 32
 
