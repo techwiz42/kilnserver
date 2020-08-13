@@ -24,7 +24,7 @@ class KilnCommand:
   def start(self, job_id):
     # TODO: Handle job not found condition
     job = model.Job.query.filter_by(id=int(job_id)).first()
-    command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps}, default=jdefault)
+    command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps, 'units': job.units}, default=jdefault)
     self.sock.sendall(_to_bytes(command + "\n"))
 
   def stop(self):

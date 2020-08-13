@@ -11,7 +11,7 @@ except ImportError:
 import max31855 as mx
 
 class KilnController:
-  def __init__(self, segments, conn):
+  def __init__(self, segments, units, conn):
     self.logger = logging.getLogger(__name__)
     handler = logging.FileHandler('/tmp/kilncontroller.log')
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -22,7 +22,8 @@ class KilnController:
     self.segments = segments
     self.run_state = None
     self.job_id = None  # this is the ID of the running job, if any.
-    self.build_temp_table()
+    self.units = units
+    self.build_temp_table(self.units)
     #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
     self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
     GPIO.cleanup() # just in case
@@ -60,26 +61,29 @@ class KilnController:
       prev_target = segment['target']
     return round(seconds)
 
-  def build_temp_table(self):
-    start_temp = self.read_temp()
-    self.logger.debug("start_temp is %s" % (repr(start_temp)))
+  # NOTE that the internal units of the temp table are F.
+  # Job Steps are stored in the database as either C or F and
+  # Are converted to F here. the to_F() function does the conversion
+  def build_temp_table(self, units):
+    start_temp = self.to_F(self.read_temp())
+    self.logger.debug("start_temp is %s degrees F" % (repr(start_temp)))
     previous_target = start_temp
     self.temp_table = [start_temp]
 
     for segment in self.segments:
-      self.logger.debug("segment: rate: %s target: %s dwell: %s" % (repr(segment['rate']),repr(segment['target']),repr(segment['dwell'])))
-      rate_mins = segment['rate'] / 60.0
-      ramp = int(round(abs((segment['target'] - previous_target) / rate_mins)))
+      self.logger.debug("segment: rate: %s target: %s dwell: %s" % (repr(self.to_F(segment['rate'])),repr(self.to_F(segment['target'])),repr(segment['dwell'])))
+      rate_mins = self.to_F(segment['rate']) / 60.0
+      ramp = int(round(abs((self.to_F(segment['target']) - previous_target) / rate_mins)))
       j = 1
       t = 0
       for m in range(t, t + int(ramp)):
-        self.temp_table.append((segment['target'] - previous_target) * j / ramp + previous_target)
+        self.temp_table.append((self.to_F(segment['target']) - previous_target) * j / ramp + previous_target)
         j += 1
       for m in range(t + int(ramp), t + int(ramp + segment['dwell'])):
-        self.temp_table.append(segment['target'])
+        self.temp_table.append(self.to_F(segment['target']))
         j += 1
       t = round(t + ramp + segment['dwell'])
-      previous_target = segment['target']
+      previous_target = self.to_F(segment['target'])
 
   def set_point(self):
     seconds = self.runtime - self.pausetime
@@ -93,6 +97,13 @@ class KilnController:
 
   def kiln_off(self):
     GPIO.output(self.gpio_pin, GPIO.LOW)
+
+  # Convert celsius temperatures to Farenheit. If units are already F, don't convert.
+  def to_F(self, temperature):
+    if self.units == constants.FARENHEIT:
+      return temperature
+    return temperature * 9 / 5 + 32
+
 
   def run(self):
     self.run_state = RUN
@@ -256,7 +267,7 @@ class KilnCommandProcessor:
             elif command_data['command'].upper() == 'START':
               # start a job
               # TODO: Add failure handling code
-              self.kiln_controller = KilnController(command_data['steps'], conn)
+              self.kiln_controller = KilnController(command_data['steps'], command_data['units'], conn)
               self.kiln_controller.job_id = command_data['job_id']
               self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
               self.kiln_controller_thread.start()
@@ -276,8 +287,11 @@ class KilnCommandProcessor:
               state = 'IDLE'
               job_id = str(-1)
               if self.kiln_controller is not None:
-                state = self.kiln_controller.run_state
                 job_id = self.kiln_controller.job_id
+                if job_id is not None and job_id != '-1':
+                  state = self.kiln_controller.run_state
+                else:
+                  self.kiln_controller.run_state = state
               response = json.dumps({'response': 'status', 'state': state, 'job_id': job_id })
               conn.sendall(_to_bytes(response + "\n"))
             elif command_data['command'].upper() == 'HALT_KILNSERVER':
