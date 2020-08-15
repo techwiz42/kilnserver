@@ -1,9 +1,9 @@
 import socket, json
-from kilncontroller import constants
+#from kilncontroller import constants
 from kilnweb2 import model
 from collections import OrderedDict
 
-SOCK_PATH = constants.SOCK_PATH
+SOCK_PATH = "/tmp/kiln_controller"
 
 def jdefault(o):
   if isinstance(o, model.JobStep):

@@ -25,6 +25,8 @@ The database has been moved from /tmp/kilnweb.db to the kilnweb2/kilnweb2/kilnwe
 It is initialized from the command line by invoking 
 ~~~
 flask db init
+flask db migrate
+flask db upgrade
 ~~~
 
 For the image supplied with the project, invoke the virtual environment in a command window. The virtual environment can be invoked from any directory. Invoke it like so:

@@ -29,7 +29,8 @@ setup(
       'flask-wtf',
       'werkzeug >= 1.0',
       'flask_bootstrap',
-      'flask-migrate'
+      'flask-migrate',
+      'email_validator'  
     ],
     entry_points = {
         'console_scripts': [

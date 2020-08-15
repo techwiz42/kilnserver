@@ -1,3 +1,4 @@
+@DEPRECATED
 from kilnweb import app
 from kilnweb.model import db, Job, JobStep
 from datetime import datetime
