@@ -22,6 +22,7 @@ setup(
       'kilnweb': ['static/*.css', 'templates/*.html'],
     },
     install_requires = [
+      'cython >= 3',  
       'Flask >= 1.1.1',
       'flask-sqlalchemy',
       'numpy >= 1.7.1',
