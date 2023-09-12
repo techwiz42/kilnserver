@@ -327,7 +327,7 @@ def main():
   kcp.run()
 
 def _to_bytes(s):
-  return bytes(s)
+  return bytes(s, 'utf-8')
 
 if __name__ == "__main__":
     main()
