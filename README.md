@@ -9,10 +9,24 @@ Rob originally structured the project.
 See this page: https://flask.palletsprojects.com/en/1.1.x/patterns/packages/ for instructions on how to 
 set up, initialize and run kilnweb2.  Note that the kilnweb2 directory structure looks like this:
 
+Install virtualenvwrapper on your device if it is not already installed and create a virtual environment for the project.
+then run setup.py:
+
+~~~
+python setup.py install
+~~~
+
+If you have not yet cloned the project onto your device, get it from github by:
+
+~~~
+git clone https://github.com/techwiz42/kilnserver.git
+~~~
+
+The directory structure of kilnweb2, the web server part of the project should look like this:
 
 ~~~
 /kilnweb2
-  /kilnweb2
+  /internals
     /static
     /templates
     __init__.py

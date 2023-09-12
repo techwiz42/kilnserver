@@ -6,7 +6,7 @@ try:
   import RPi.GPIO as GPIO
 except ImportError:
   # Assume we're not running on Pi hardware, import stub instead
-  from stub.RPi import GPIO
+    import stubGPIO as GPIO 
 
 import max31855 as mx
 
@@ -321,7 +321,7 @@ def main():
     import RPi.GPIO as GPIO
   except ImportError:
     # Assume we're not running on a Raspberry Pi.
-    from stub.RPi import GPIO as GPIO
+    import stubGPIO as GPIO
   import max31855
   kcp = KilnCommandProcessor()
   kcp.run()
