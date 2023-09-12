@@ -1,24 +1,29 @@
-**Server for thermocouple/fuzzy-logic kiln control project.**
+*** Novel Annealing Algorithm ***
+This project implements a novel fuzzy logic annealing algorithm developed by Roger Carr. The algorithm itself will not be 
+detailed here. Contact Dr. Carr directly for details at roger.carr1@gmail.com
+
 
 **The Architecture**
+The project consists of a kiln controller running on a single-board computer connected to a temperature sensor located within a kiln.
+The kilncontroller process runs continuously, listening for commands via a unix socket connected to a Flask web-based user interface.
+Users create and run jobs annealing jobs using the Flask web application.
+
 * Kilncontroller runs on the Raspberry Pi. It talks to the thermocouple and listens on a Unix socket for commands from kilnweb2.
 * Kilnweb2 is a Flask application that provides a web-based UI that allows take user commands and transmit them to kilncontroller.
-
-If you have not yet cloned the project onto your device, get it from github by:
-
+To clone the software onto your device, get it from github by:
 ~~~
 git clone https://github.com/techwiz42/kilnserver.git
 ~~~
 
 Install virtualenvwrapper on your device if it is not already installed and create a virtual environment for the project.
-then run setup.py:
+Create a virtual environment and activate it. Next run setup.py:
 
 ~~~
 <top-level kilnserver directory>$ python setup.py install
 ~~~
 
-I've put the web component of the project into kilnweb2, which is structured somewhat differently from the way that 
-Rob originally structured the project.
+This will download the necessary python packages into the virtual environment.
+
 See this page: https://flask.palletsprojects.com/en/1.1.x/patterns/packages/ for instructions on how to 
 set up, initialize and run flask projects.  Note that the kilnweb2 directory structure looks like this:
 
@@ -35,9 +40,9 @@ The directory structure of kilnweb2, the web server part of the project should l
     views.py
 ~~~    
 
-The database has been moved from /tmp/kilnweb.db to the kilnweb2/kilnweb2/kilnweb.db. 
+The SQLite database has been lives in kilnweb2/kilnweb2/kilnweb.db. 
 Change directory to the top-level kilnweb2 directory.
-The database is initialized from the command line by invoking 
+Initialize the database from the command line by invoking 
 ~~~
 flask db init
 flask db migrate
@@ -49,6 +54,7 @@ The kilncontroller must be run with root privileges. Change directory to the top
 ~~~
 >sudo python ./main.py
 ~~~
+Note that it may be necessary to modify the permissions on numpy to enable the root user to execute it.
 
 Initialize kilnweb2 by changing to the kilnweb2 directory and running 
 ~~~
