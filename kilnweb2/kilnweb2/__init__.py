@@ -16,7 +16,7 @@ migrate = Migrate(app, app.db)
 bootstrap = Bootstrap(app)
 login = LoginManager(app)
 
-from kilnweb2 import views, model
+from internals import views, model
 
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
 

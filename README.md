@@ -52,8 +52,14 @@ For the image supplied with the project, invoke the virtual environment in a com
 The kilncontroller must be run with root privileges. Change directory to the top level directory, be sure to activate the virtual environment and start the kilncontroller:
 
 ~~~
->sudo python ./__init__.py
+>sudo python ./main.py
 ~~~
+
+Initialize kilnweb2 by changing to the kilnweb2 directory and running 
+~~~
+python setup.py install
+~~~
+Note that this needs only to be run once.
 
 The flask app lives in kilncontroller/kilnweb2/kilnweb2/\__init__.py and is invoked from a command window.  cd to the upper-level
 kilnweb2 directory and invoke. Be sure to run in the appropriate virtual environment.
