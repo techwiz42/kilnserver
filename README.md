@@ -1,7 +1,6 @@
-*** Novel Annealing Algorithm ***
+***Novel Annealing Algorithm***
 This project implements a novel fuzzy logic annealing algorithm developed by Roger Carr. The algorithm itself will not be 
 detailed here. Contact Dr. Carr directly for details at roger.carr1@gmail.com
-
 
 **The Architecture**
 The project consists of a kiln controller running on a single-board computer connected to a temperature sensor located within a kiln.
