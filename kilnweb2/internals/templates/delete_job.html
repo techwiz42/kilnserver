@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+{% if not deleted %}
+<h2>Delete job</h2>
+Are you sure you wish to delete job {{ job.name }}?  This cannot be undone.
+<form action="{{ url_for('delete_job', job_id=job.id) }}" method="post">
+<input type="submit" value="Delete Job" class="delete"/>
+</form>
+{% endif %}
+
+<a href="{{ url_for('show_jobs') }}">Back to job list</a>
+{% endblock %}
