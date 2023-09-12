@@ -1,20 +1,8 @@
 **Server for thermocouple/fuzzy-logic kiln control project.**
 
 **The Architecture**
-* Kilncontroller runs on the Raspberry Pi and talks to the thermocouple.
-* Kilnweb is a Flask application that controls the web-based UI.
-
-I've put the kinlweb component into kilnweb2, which is structured somewhat differently from the way that 
-Rob originally structured the project.
-See this page: https://flask.palletsprojects.com/en/1.1.x/patterns/packages/ for instructions on how to 
-set up, initialize and run kilnweb2.  Note that the kilnweb2 directory structure looks like this:
-
-Install virtualenvwrapper on your device if it is not already installed and create a virtual environment for the project.
-then run setup.py:
-
-~~~
-python setup.py install
-~~~
+* Kilncontroller runs on the Raspberry Pi. It talks to the thermocouple and listens on a Unix socket for commands from kilnweb2.
+* Kilnweb2 is a Flask application that provides a web-based UI that allows take user commands and transmit them to kilncontroller.
 
 If you have not yet cloned the project onto your device, get it from github by:
 
@@ -22,11 +10,23 @@ If you have not yet cloned the project onto your device, get it from github by:
 git clone https://github.com/techwiz42/kilnserver.git
 ~~~
 
+Install virtualenvwrapper on your device if it is not already installed and create a virtual environment for the project.
+then run setup.py:
+
+~~~
+<top-level kilnserver directory>$ python setup.py install
+~~~
+
+I've put the web component of the project into kilnweb2, which is structured somewhat differently from the way that 
+Rob originally structured the project.
+See this page: https://flask.palletsprojects.com/en/1.1.x/patterns/packages/ for instructions on how to 
+set up, initialize and run flask projects.  Note that the kilnweb2 directory structure looks like this:
+
 The directory structure of kilnweb2, the web server part of the project should look like this:
 
 ~~~
 /kilnweb2
-  /internals
+  /kilnweb2
     /static
     /templates
     __init__.py
@@ -35,19 +35,14 @@ The directory structure of kilnweb2, the web server part of the project should l
     views.py
 ~~~    
 
-The database has been moved from /tmp/kilnweb.db to the kilnweb2/kilnweb2/kilnweb.db.  
-It is initialized from the command line by invoking 
+The database has been moved from /tmp/kilnweb.db to the kilnweb2/kilnweb2/kilnweb.db. 
+Change directory to the top-level kilnweb2 directory.
+The database is initialized from the command line by invoking 
 ~~~
 flask db init
 flask db migrate
 flask db upgrade
 ~~~
-
-For the image supplied with the project, invoke the virtual environment in a command window. The virtual environment can be invoked from any directory. Invoke it like so:
-
-~~~
->workon kilnsvr
-~~~ 
 
 The kilncontroller must be run with root privileges. Change directory to the top level directory, be sure to activate the virtual environment and start the kilncontroller:
 
@@ -61,7 +56,7 @@ python setup.py install
 ~~~
 Note that this needs only to be run once.
 
-The flask app lives in kilncontroller/kilnweb2/kilnweb2/\__init__.py and is invoked from a command window.  cd to the upper-level
+The flask app lives in kilncontroller/kilnweb2/kilnweb2/__init__.py and is invoked from a command window.  cd to the upper-level
 kilnweb2 directory and invoke. Be sure to run in the appropriate virtual environment.
 
 ~~~
