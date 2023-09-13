@@ -1,6 +1,3 @@
-#FIXME: flask seems to understand the imports from kilnweb2 but python does not
-#FIXME: python wants "from kilnweb2.kilnweb2 import .. " but this doesn't work in flask.
-#FIXME: the configuration is out of whack somehow.
 from kilnweb2 import app, kiln_command, model
 from flask import request, g, redirect, url_for, render_template, flash
 from datetime import datetime, time
@@ -100,9 +97,9 @@ def show_users():
 
 @app.route('/users/<int:user_id>/update_user', methods = ['GET', 'POST'])
 @login_required
-def update_user(user_id):
+def update_user(user_id):    
   if not current_user.is_admin:
-    flash("%s is not authorized access this page") % current_user.name
+    flash("User %s is not authorized access this page" % current_user.username)
     return redirect(url_for('show_jobs'))
   user = model.User.query.filter_by(id=user_id).first()
   if not user:
@@ -193,7 +190,7 @@ def update_job_steps(job_id):
 
 def __update_steps(job):
   for step_id in request.form.getlist('id'):
-    #update existing steps  
+    #update existing steps
     target = int(request.form["target[%s]" % step_id])
     rate = int(request.form["rate[%s]" % step_id])
     dwell = int(request.form["dwell[%s]" % step_id])
@@ -207,12 +204,14 @@ def __update_steps(job):
       step_record.dwell = dwell
       step_record.threshold = threshold
     app.db.session.add(step_record)
+    app.db.session.commit()
   #Add a new step  
   target = int(request.form["target"])
   rate = int(request.form["rate"])
   dwell = int(request.form["dwell"])
   threshold = int(request.form["threshold"])
   step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
+  app.db.session.add(step_record)
   app.db.session.commit()
 
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
