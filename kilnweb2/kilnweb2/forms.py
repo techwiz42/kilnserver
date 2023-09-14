@@ -22,6 +22,12 @@ class RegistrationForm(FlaskForm):
     'Repeat Password', validators=[DataRequired(), EqualTo('password')])
   submit = SubmitField('Register')
 
+class ShowUserForm(FlaskForm):
+  full_name = StringField("Full Name") #FIXME: validate name & phone number?
+  phone_number = StringField("Phone Number")
+  email_address = StringField('Email Address', validators=[DataRequired(), Email()])
+  submit = SubmitField('Update User')
+
   def validate_username(self, username):
     user = User.query.filter_by(username=username.data).first()
     if user is not None:

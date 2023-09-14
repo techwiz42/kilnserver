@@ -4,7 +4,7 @@ from datetime import datetime, time
 from flask_login import current_user, login_user, logout_user, login_required
 from kilnweb2.model import User, Job
 from kilnweb2 import app
-from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm
+from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm
 # Route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -90,30 +90,51 @@ def halt_kilnserver():
 @login_required
 def show_users():
   if not current_user.is_admin:
-    flash("%s is not authorized access this page") % current_user.name
+    flash("%s is not authorized access this page") % current_user.full_name
     return redirect(url_for('show_jobs'))
   users = model.User.query.all()
   return render_template('show_users.html', users=users)
 
+@app.route('/user', methods = ['GET', 'POST'])
+@login_required
+def show_user():
+    if not current_user.is_auth:
+        flash("Unable to update user")
+    else:
+        form = ShowUserForm()
+        if form.validate_on_submit():
+            user = model.User.query.filter_by(id=current_user.id).first()
+            user.full_name = form.full_name.data
+            user.phone_number = form.phone_number.data
+            user.email_address = form.email_address.data
+            app.db.session.commit()
+            flash("User %s updated successfully" % user.username)
+            return redirect(url_for('show_jobs'))
+        return render_template('show_user.html', title="update user", form=form)
+
+
 @app.route('/users/<int:user_id>/update_user', methods = ['GET', 'POST'])
 @login_required
 def update_user(user_id):    
-  if not current_user.is_admin:
-    flash("User %s is not authorized access this page" % current_user.username)
-    return redirect(url_for('show_jobs'))
-  user = model.User.query.filter_by(id=user_id).first()
-  if not user:
-    flash("Unable to update user")
-  else:
-    user.full_name = request.args.get('full_name[%r]' % user_id)
-    user.email_address = request.args.get('email_address[%r]' % user_id)
-    user.phone_number = request.args.get('phone_number[%r]' % user_id)
-    user.is_admin = (request.args.get('is_admin[%r]' % user_id) == 'on')
-    user.is_auth = (request.args.get('is_auth[%r]' %user_id) == 'on')
-    app.db.session.commit()
-    flash("User %s updated successfully" % user.username)
-  users = model.User.query.all()
-  return redirect(url_for('show_users', users=users))
+    user = model.User.query.filter_by(id=user_id).first()
+    if not user:
+        flash("Unable to update user")
+    elif current_user.is_admin or user.id == user_id:
+        user.full_name = request.args.get('full_name[%r]' % user_id)
+        user.email_address = request.args.get('email_address[%r]' % user_id)
+        user.phone_number = request.args.get('phone_number[%r]' % user_id)
+        user.is_admin = (request.args.get('is_admin[%r]' % user_id) == 'on')
+        user.is_auth = (request.args.get('is_auth[%r]' %user_id) == 'on')
+        app.db.session.commit()
+        flash("User %s updated successfully" % user.username)
+    else:
+        flash("User %s is not authorized access this page" % current_user.username)
+        return redirect(url_for('show_jobs'))
+    if current_user.is_admin:
+        users = model.User.query.all()
+        return redirect(url_for('show_users', users=users))
+    else:
+        return redirect(url_for('show_jobs'))
 
 
 @app.route('/users/<int:user_id>/delete_user', methods=['GET', 'POST'])
@@ -122,7 +143,6 @@ def delete_user(user_id):
   if not current_user.is_admin:
     flash("%s is not authorized access this page") % current_user.name
     return redirect(url_for('show_jobs'))
-  flash("EAT MY SHORTS")
   user = model.User.query.filter_by(id=user_id).first()
   app.db.session.delete(user)
   app.db.session.commit()

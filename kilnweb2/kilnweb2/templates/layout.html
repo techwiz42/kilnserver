@@ -5,17 +5,17 @@
 <div class=page>
   <h1><a href="{{ url_for('show_jobs') }}">Kiln Server</a></h1>
   <div align="right">
-    {% if current_user.is_anonymous %}
-      <a href="{{ url_for('login') }}">Login</a>
-      <a href="{{ url_for('register') }}">Register</a>
-    {% else %}
-    <a href="{{ url_for('update_user', user_id=current_user.id) }}"> {{ current_user.username }} </a>
-      <a href="{{ url_for('show_jobs') }}">Show Jobs</a>
-      {% if current_user.is_admin %}
-        <a href="{{ url_for('show_users') }}">Show Users</a>
-      {% endif %}
-      <a href="{{ url_for('logout') }}">Logout</a>
-    {% endif %}
+    	{% if current_user.is_anonymous %}
+      		<a href="{{ url_for('login') }}">Login</a>
+      		<a href="{{ url_for('register') }}">Register</a>
+    	{% else %}
+    		<a href="{{ url_for('show_user') }}"> {{ current_user.username }} </a>
+      		<a href="{{ url_for('show_jobs') }}">Show Jobs</a>
+      		{% if current_user.is_admin %}
+        		<a href="{{ url_for('show_users') }}">Show Users</a>
+      		{% endif %}
+      		<a href="{{ url_for('logout') }}">Logout</a>
+    	{% endif %}
   </div>
   <div class=metanav>
   </div>

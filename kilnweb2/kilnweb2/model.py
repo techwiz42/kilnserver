@@ -65,8 +65,8 @@ class User(UserMixin, app.db.Model):
   is_admin = app.db.Column(app.db.Integer)
   is_auth = app.db.Column(app.db.Integer)
   full_name = app.db.Column(app.db.String(64))
-  email_address = app.db.Column(app.db.String(128), index=True, unique=True)
-  phone_number = app.db.Column(app.db.String(16), index=True)
+  email_address = app.db.Column(app.db.String(128))
+  phone_number = app.db.Column(app.db.String(16))
   password_hash = app.db.Column(app.db.String(128))
 
   def __repr__(self):
