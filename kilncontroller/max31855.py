@@ -1,14 +1,17 @@
 #!/usr/bin/python
+''' Python driver for MAX38166 thermcouple '''
 try:
-  import RPi.GPIO as GPIO
+    from RPi import GPIO
 except ImportError:
-  # Assume we're not running on Pi hardware, import stub instead
-  import stubGPIO as GPIO
+    # Assume we're not running on Pi hardware, import stub instead
+    import stubGPIO as GPIO
 
-class MAX31855(object):
-    '''Python driver for [MAX38155 Cold-Junction Compensated Thermocouple-to-Digital Converter](http://www.maximintegrated.com/datasheet/index.mvp/id/7273)
+class MAX31855():
+    '''Python driver for [MAX38155 Cold-Junction Compensated Thermocouple-to-Digital Converter]
+    (http://www.maximintegrated.com/datasheet/index.mvp/id/7273)
      Requires:
-     - The [GPIO Library](https://code.google.com/p/raspberry-gpio-python/) (Already on most Raspberry Pi OS builds)
+     - The [GPIO Library](https://code.google.com/p/raspberry-gpio-python/) 
+       (Already on most Raspberry Pi OS builds)
      - A [Raspberry Pi](http://www.raspberrypi.org/)
 
     '''
@@ -19,9 +22,10 @@ class MAX31855(object):
         - cs_pin:    Chip Select (CS) / Slave Select (SS) pin (Any GPIO)  
         - clock_pin: Clock (SCLK / SCK) pin (Any GPIO)
         - data_pin:  Data input (SO / MOSI) pin (Any GPIO)
-        - units:     (optional) unit of measurement to return. ("c" (default) | "k" | "f")
-        - board:     (optional) pin numbering method as per RPi.GPIO library (GPIO.BCM (default) | GPIO.BOARD)
-
+        - units:     (optional) unit of measurement to return. 
+                     ("c" (default) | "k" | "f")
+        - board:     (optional) pin numbering method as per RPi.GPIO library 
+                     (GPIO.BCM (default) | GPIO.BOARD)
         '''
         self.cs_pin = cs_pin
         self.clock_pin = clock_pin
@@ -56,10 +60,10 @@ class MAX31855(object):
         # Select the chip
         GPIO.output(self.cs_pin, GPIO.LOW)
         # Read in 32 bits
-        for i in range(32):
+        for _ in range(32):
             GPIO.output(self.clock_pin, GPIO.LOW)
             bytesin = bytesin << 1
-            if (GPIO.input(self.data_pin)):
+            if GPIO.input(self.data_pin):
                 bytesin = bytesin | 1
             GPIO.output(self.clock_pin, GPIO.HIGH)
         # Unselect the chip
@@ -78,27 +82,26 @@ class MAX31855(object):
         if anyErrors:
             if noConnection:
                 raise MAX31855Error("No Connection")
-            elif shortToGround:
+            if shortToGround:
                 raise MAX31855Error("Thermocouple short to ground")
-            elif shortToVCC:
+            if shortToVCC:
                 raise MAX31855Error("Thermocouple short to VCC")
-            else:
-                # Perhaps another SPI device is trying to send data?
-                # Did you remember to initialize all other SPI devices?
-                raise MAX31855Error("Unknown Error")
+            # Perhaps another SPI device is trying to send data?
+            # Did you remember to initialize all other SPI devices?
+            raise MAX31855Error("Unknown Error")
 
     def data_to_tc_temperature(self, data_32 = None):
         '''Takes an integer and returns a thermocouple temperature in celsius.'''
         if data_32 is None:
             data_32 = self.data
-        tc_data = ((data_32 >> 18) & 0x3FFF)
+        tc_data = (data_32 >> 18) & 0x3FFF
         return self.convert_tc_data(tc_data)
 
     def data_to_rj_temperature(self, data_32 = None):
         '''Takes an integer and returns a reference junction temperature in celsius.'''
         if data_32 is None:
             data_32 = self.data
-        rj_data = ((data_32 >> 4) & 0xFFF)
+        rj_data = (data_32 >> 4) & 0xFFF
         return self.convert_rj_data(rj_data)
 
     def convert_tc_data(self, tc_data):
@@ -115,11 +118,11 @@ class MAX31855(object):
     def convert_rj_data(self, rj_data):
         '''Convert reference junction data to a useful number (celsius).'''
         if rj_data & 0x800:
-           without_resolution = ~rj_data & 0x7FF
-           without_resolution += 1
-           without_resolution *= -1
+            without_resolution = ~rj_data & 0x7FF
+            without_resolution += 1
+            without_resolution *= -1
         else:
-             without_resolution = rj_data & 0x7FF
+            without_resolution = rj_data & 0x7FF
         return without_resolution * 0.0625
 
     def to_c(self, celsius):
@@ -140,24 +143,25 @@ class MAX31855(object):
         GPIO.setup(self.clock_pin, GPIO.IN)
 
 class MAX31855Error(Exception):
-     def __init__(self, value):
-         self.value = value
-     def __str__(self):
-         return repr(self.value)
+    '''Returns thermocouple errors'''
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 if __name__ == "__main__":
 
     # Multi-chip example
     import time
-    cs_pins = [4, 17, 18, 24]
-    clock_pin = 23
-    data_pin = 22
-    units = "f"
+    CS_PINS = [4, 17, 18, 24]
+    CLOCK_PIN = 23
+    DATA_PIN = 22
+    UNITS = "f"
     thermocouples = []
-    for cs_pin in cs_pins:
-        thermocouples.append(MAX31855(cs_pin, clock_pin, data_pin, units))
-    running = True
-    while(running):
+    for pin in CS_PINS:
+        thermocouples.append(MAX31855(pin, CLOCK_PIN, DATA_PIN, UNITS))
+    RUNNING = True
+    while RUNNING:
         try:
             for thermocouple in thermocouples:
                 rj = thermocouple.get_rj()
@@ -165,10 +169,10 @@ if __name__ == "__main__":
                     tc = thermocouple.get()
                 except MAX31855Error as e:
                     tc = "Error: "+ e.value
-                    running = False
-                print("tc: {} and rj: {}".format(tc, rj))
+                    RUNNING = False
+                print(f"tc: {tc} and rj: {rj}")
             time.sleep(1)
         except KeyboardInterrupt:
-            running = False
+            RUNNING = False
     for thermocouple in thermocouples:
         thermocouple.cleanup()
