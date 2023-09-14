@@ -1,3 +1,0 @@
-Add Stop, Pause and Resume actions.
-Resume is distinct from start because it will "remember" what step it was on, how far into the dwell it was, and so forth.
-Need much closer tracking of steps in the celery jobs.
