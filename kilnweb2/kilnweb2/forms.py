@@ -1,52 +1,54 @@
+''' The user-defined forms for this Flask app '''
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
-from wtforms.widgets import TextArea
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-from flask_login import current_user
 from kilnweb2.model import User, Job
 
-# ...
 
 class LoginForm(FlaskForm):
-  username = StringField("User Name", validators = [DataRequired()])
-  password = PasswordField('Password', validators = [DataRequired()])
-  submit = SubmitField('Login')
+    ''' The form that users login on '''
+    username = StringField("User Name", validators = [DataRequired()])
+    password = PasswordField('Password', validators = [DataRequired()])
+    submit = SubmitField('Login')
 
 class RegistrationForm(FlaskForm):
-  username = StringField('Username', validators=[DataRequired()])
-  full_name = StringField("Full Name") #FIXME: validate name & phone number?
-  phone_number = StringField("Phone Number")
-  email = StringField('Email', validators=[DataRequired(), Email()])
-  password = PasswordField('Password', validators=[DataRequired()])
-  password2 = PasswordField(
-    'Repeat Password', validators=[DataRequired(), EqualTo('password')])
-  submit = SubmitField('Register')
+    ''' The registration form for new users '''
+    username = StringField('Username', validators=[DataRequired()])
+    full_name = StringField("Full Name")
+    phone_number = StringField("Phone Number")
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Register')
 
 class ShowUserForm(FlaskForm):
-  full_name = StringField("Full Name") #FIXME: validate name & phone number?
-  phone_number = StringField("Phone Number")
-  email_address = StringField('Email Address', validators=[DataRequired(), Email()])
-  submit = SubmitField('Update User')
+    ''' Display a user's data and allow him/her to edit '''
+    full_name = StringField("Full Name")
+    phone_number = StringField("Phone Number")
+    email_address = StringField('Email Address', validators=[DataRequired(), Email()])
+    submit = SubmitField('Update User')
 
-  def validate_username(self, username):
-    user = User.query.filter_by(username=username.data).first()
-    if user is not None:
-      raise ValidationError('Please use a different username.')
+    def validate_username(self, username):
+        ''' if can\'t find user, raise validation error '''
+        user = User.query.filter_by(username=username.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different username.')
 
-  def validate_email(self, email):
-    user = User.query.filter_by(email_address=email.data).first()
-    if user is not None:
-      raise ValidationError('Please use a different email address.')
+    def validate_email(self, email):
+        ''' if can\'t find user, raise validation error '''
+        user = User.query.filter_by(email_address=email.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different email address.')
 
 class NewJobForm(FlaskForm):
-  name = StringField("Job Name", validators=[DataRequired()])
-  comment = TextAreaField('Comment')
-  submit = SubmitField("Add Job")
+    ''' Form for entering a new job '''
+    name = StringField("Job Name", validators=[DataRequired()])
+    comment = TextAreaField('Comment')
+    submit = SubmitField("Add Job")
 
-  def validate_name(self, name):
-    name = Job.query.filter_by(name=name.data).first()
-    if name is not None:
-      raise ValidationError('Please choose a different name for your job')
-
-
-
+    def validate_name(self, name):
+        ''' if a job already exists with this name, raise validation error'''
+        name = Job.query.filter_by(name=name.data).first()
+        if name is not None:
+            raise ValidationError('Please choose a different name for your job')
