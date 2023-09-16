@@ -278,8 +278,8 @@ class KilnCommandProcessor:
                     data = conn.recv(1024)
                     if data:
                         self.process_command(data, conn)
-                else:
-                    break
+                    else:
+                        break
             finally:
                 conn.close()
                 self.logger.debug('connection closed')
@@ -315,8 +315,8 @@ class KilnCommandProcessor:
                     state = self.kiln_controller.run_state
                 else:
                     self.kiln_controller.run_state = state
-        response = json.dumps({'response': 'status', 'state': state, 'job_id': job_id })
-        conn.sendall(_to_bytes(response + "\n"))
+            response = json.dumps({'response': 'status', 'state': state, 'job_id': job_id })
+            conn.sendall(_to_bytes(response + "\n"))
 
     def run(self):
         self.socket_thread = threading.Thread(target=self.socket_loop)
