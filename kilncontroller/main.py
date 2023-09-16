@@ -278,12 +278,6 @@ class KilnCommandProcessor:
                     data = conn.recv(1024)
                     if data:
                         self.process_command(data, conn)
-                    elif command_data['command'].upper() == 'HALT_KILNSERVER':
-                        self.RUN_SERVER = False
-                        self.kiln_controller = None
-                        response = json.dumps({'response': 'Kiln Controller HALTED'})
-                        conn.sendall(_to_bytes(response + "\n"))
-                        self.kiln_controller_thread = None
                 else:
                     break
             finally:
@@ -291,39 +285,38 @@ class KilnCommandProcessor:
                 self.logger.debug('connection closed')
 
     def process_command(self, data, conn):
-        if data:
-            command_data = json.loads(data)
-            if command_data['command'].upper() == 'PING':
-                conn.sendall(_to_bytes("PONG\n"))
-            elif command_data['command'].upper() == 'START':
-                # Start a job
-                self.kiln_controller = KilnController(command_data['steps'], command_data['units'], conn)
-                self.kiln_controller.job_id = command_data['job_id']
-                self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
-                self.kiln_controller_thread.start()
-            elif command_data['command'].upper() == 'STOP':
-                if self.kiln_controller is not None:
-                    self.kiln_controller.stop()
-                    self.kiln_controller_thread.join(30) # 30 sec timeout
-                    self.kiln_controller.job_id = None
-                    self.kiln_controller = None
-            elif command_data['command'].upper() == 'PAUSE':
-                if self.kiln_controller is not None:
-                    self.kiln_controller.pause()
-            elif command_data['command'].upper() == 'RESUME':
-                if self.kiln_controller is not None:
-                    self.kiln_controller.resume()
-            elif command_data['command'].upper() == 'STATUS':
-                state = 'IDLE'
-                job_id = str(-1)
-                if self.kiln_controller is not None:
-                    job_id = self.kiln_controller.job_id
-                    if job_id is not None and job_id != '-1':
-                        state = self.kiln_controller.run_state
-                    else:
-                        self.kiln_controller.run_state = state
-            response = json.dumps({'response': 'status', 'state': state, 'job_id': job_id })
-            conn.sendall(_to_bytes(response + "\n"))
+        command_data = json.loads(data)
+        if command_data['command'].upper() == 'PING':
+            conn.sendall(_to_bytes("PONG\n"))
+        elif command_data['command'].upper() == 'START':
+            # Start a job
+            self.kiln_controller = KilnController(command_data['steps'], command_data['units'], conn)
+            self.kiln_controller.job_id = command_data['job_id']
+            self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
+            self.kiln_controller_thread.start()
+        elif command_data['command'].upper() == 'STOP':
+            if self.kiln_controller is not None:
+                self.kiln_controller.stop()
+                self.kiln_controller_thread.join(30) # 30 sec timeout
+                self.kiln_controller.job_id = None
+                self.kiln_controller = None
+        elif command_data['command'].upper() == 'PAUSE':
+            if self.kiln_controller is not None:
+                self.kiln_controller.pause()
+        elif command_data['command'].upper() == 'RESUME':
+            if self.kiln_controller is not None:
+                self.kiln_controller.resume()
+        elif command_data['command'].upper() == 'STATUS':
+            state = 'IDLE'
+            job_id = str(-1)
+            if self.kiln_controller is not None:
+                job_id = self.kiln_controller.job_id
+                if job_id is not None and job_id != '-1':
+                    state = self.kiln_controller.run_state
+                else:
+                    self.kiln_controller.run_state = state
+        response = json.dumps({'response': 'status', 'state': state, 'job_id': job_id })
+        conn.sendall(_to_bytes(response + "\n"))
 
     def run(self):
         self.socket_thread = threading.Thread(target=self.socket_loop)
