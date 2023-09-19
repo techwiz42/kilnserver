@@ -1,7 +1,9 @@
 ''' Module defines Job, JobStep and User tables '''
+from time import time
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from kilnweb2 import app
+import jwt
 from kilnweb2 import login
 
 @login.user_loader
@@ -74,7 +76,7 @@ class User(UserMixin, app.db.Model):
     is_admin = app.db.Column(app.db.Integer)
     is_auth = app.db.Column(app.db.Integer)
     full_name = app.db.Column(app.db.String(64))
-    email_address = app.db.Column(app.db.String(128))
+    email_address = app.db.Column(app.db.String(128), index=True, unique=True)
     phone_number = app.db.Column(app.db.String(16))
     password_hash = app.db.Column(app.db.String(128))
 
@@ -103,6 +105,28 @@ class User(UserMixin, app.db.Model):
     def check_password(self, password):
         ''' check password against saved hash '''
         return check_password_hash(self.password_hash, password)
+
+    def get_reset_token(self):
+        return jwt.encode(payload={'reset_password': self.username},
+                key='it_is_a_secret',
+                algorithm="HS256")
+
+    @staticmethod
+    def verify_reset_token(token):
+        try:
+            username = jwt.decode(jwt=token,
+                    key='it_is_a_secret',
+                    algorithms=['HS256'])
+
+        except Exception as e:
+            print(traceback.format_exc())
+            return
+        return User.query.filter_by(username=username).first()
+
+    @staticmethod
+    def verify_email(email_address):
+        user = User.query.filter_by(email_address=email_address).first()
+        return user
 
 with app.app_context():
     app.db.create_all()

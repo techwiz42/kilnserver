@@ -51,16 +51,6 @@ class KilnCommand:
       job_id = status_data['job_id']
     return [state,job_id]
 
-  def halt(self):
-    command = json.dumps({'command': 'halt_kilnserver'})
-    self.sock.sendall(_to_bytes(command + '\n'))
-    data = self.sock.recv(1024)
-    if data:
-      state = json.loads(data)
-      return state
-    else:
-      return "UNKNOWN"
-
 def _to_bytes(s):
   return bytes(s, encoding='utf-8')
 

@@ -1,10 +1,16 @@
 '''The views module defines the app\'s available URLs '''
-from datetime import datetime
+import os
+from datetime import datetime, time
 from flask import request, redirect, url_for, render_template, flash
 from flask_login import current_user, login_user, logout_user, login_required
-from kilnweb2 import app, kiln_command, model
+from flask_mail import Mail, Message
+from kilnweb2 import app, kiln_command, model, email
 from kilnweb2.model import User, Job
 from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm
+
+@app.route('/', methods = ['GET', 'POST'])
+def index():
+    return render_template('index.html', title="Kilnweb Welcome")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -15,6 +21,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
+            print("failed validation - redirecting to login")
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user)
@@ -48,7 +55,31 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-@app.route('/', methods = ['GET', 'POST'])
+
+@app.route('/password_reset', methods=['GET', 'POST'])
+def password_reset():
+    if request.method == 'GET':
+        return render_template('reset.html')
+    if request.method == 'POST':
+        email_address = request.form.get('email')
+        user = User.verify_email(email_address)
+        if user:
+            email.send_email(user)
+    return redirect(url_for('login'))
+
+@app.route('/reset_verified/<token>', methods=['GET', 'POST'])
+def reset_verified(token):
+    user = User.verify_reset_token(token)
+    if not user:
+        print('no user found')
+        return redirect(url_for('login'))
+    password = request.form.get('password')
+    if password:
+        user.set_password(password, commit=True)
+        return redirect(url_for('login'))
+    return render_template('reset_verified.html')
+
+@app.route('/show_jobs', methods = ['GET', 'POST'])
 @login_required
 def show_jobs():
     ''' display list of all jobs '''
@@ -78,21 +109,10 @@ def show_jobs():
     jobs = model.Job.query.filter_by(user_id=current_user.id)
     form.name.data = ""
     form.comment.data = ""
+    print("BEFORE RENDER TEMPLATE")
     return render_template('show_jobs.html', jobs=jobs, run_state=run_state,
                             running_job_id=running_job_id, running_job=running_job_info,
                             running_job_user=running_job_user, form=form)
-
-@app.route('/halt_kilnserver', methods = ['GET', 'POST'])
-@login_required
-def halt_kilnserver():
-    ''' sends halt command to kilnserver '''
-    if not current_user.is_admin:
-        flash(f"{current_user.username} is not authorised to use this command.")
-        flash("This is a serious infraction and will be reported")
-        return redirect(url_for(show_jobs))
-    kiln_cmd = kiln_command.KilnCommand()
-    state = kiln_cmd.halt()
-    return state
 
 @app.route('/users', methods = ['GET', 'POST'])
 @login_required
