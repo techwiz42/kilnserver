@@ -23,7 +23,7 @@ bootstrap = Bootstrap(app)
 login = LoginManager(app)
 mail = Mail(app)
 
-from internals import views, model
+from kilnweb2 import views, model
 
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
 
