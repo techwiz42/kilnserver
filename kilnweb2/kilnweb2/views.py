@@ -4,7 +4,8 @@ from datetime import datetime, time
 from flask import request, redirect, url_for, render_template, flash
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_mail import Mail, Message
-from kilnweb2 import app, kiln_command, model, email
+from kilnweb2 import app
+from kilnweb2 import kiln_command, model, email
 from kilnweb2.model import User, Job
 from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm
 
@@ -64,7 +65,10 @@ def password_reset():
         email_address = request.form.get('email')
         user = User.verify_email(email_address)
         if user:
+            flash("An email has been sent to your inbox")
             email.send_email(user)
+        else:
+            flash("Email address not found", "error")
     return redirect(url_for('login'))
 
 @app.route('/reset_verified/<token>', methods=['GET', 'POST'])
@@ -109,7 +113,6 @@ def show_jobs():
     jobs = model.Job.query.filter_by(user_id=current_user.id)
     form.name.data = ""
     form.comment.data = ""
-    print("BEFORE RENDER TEMPLATE")
     return render_template('show_jobs.html', jobs=jobs, run_state=run_state,
                             running_job_id=running_job_id, running_job=running_job_info,
                             running_job_user=running_job_user, form=form)
@@ -123,6 +126,7 @@ def show_users():
         return redirect(url_for('show_jobs'))
     users = model.User.query.all()
     return render_template('show_users.html', users=users)
+
 
 @app.route('/user', methods = ['GET', 'POST'])
 @login_required
@@ -141,7 +145,6 @@ def show_user():
             flash("User {user.username} updated successfully")
             return redirect(url_for('show_jobs'))
         return render_template('show_user.html', title="update user", form=form)
-
 
 @app.route('/users/<int:user_id>/update_user', methods = ['GET', 'POST'])
 @login_required

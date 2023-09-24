@@ -12,7 +12,7 @@ app = Flask(__name__)
 mail = Mail(app)
 app.config.from_object(Config)
 app.db = SQLAlchemy(app)
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_SERVER'] = 'smtp.mail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'kilnweb@mail.com'
@@ -23,17 +23,18 @@ bootstrap = Bootstrap(app)
 login = LoginManager(app)
 mail = Mail(app)
 
-from kilnweb2 import views, model
-
 app.config.from_envvar('KILNSERVER_SETTINGS', silent=True)
 
+from kilnweb2 import views, model
+from tests import test_kilnweb2
+
 def main():
-  handler = logging.FileHandler('/tmp/kilnweb.log')
-  formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-  handler.setFormatter(formatter)
-  app.logger.addHandler(handler) 
-  app.logger.setLevel(logging.DEBUG)
-  app.run(debug=True, host='0.0.0.0')
+    handler = logging.FileHandler('/tmp/kilnweb.log')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    handler.setFormatter(formatter)
+    app.logger.addHandler(handler) 
+    app.logger.setLevel(logging.DEBUG)
+    app.run(debug=True, host='0.0.0.0')
 
 
 if __name__ == '__main__':

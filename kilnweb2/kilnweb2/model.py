@@ -2,9 +2,8 @@
 from time import time
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from kilnweb2 import app
+from kilnweb2 import app, login
 import jwt
-from kilnweb2 import login
 
 @login.user_loader
 def load_user(id):
