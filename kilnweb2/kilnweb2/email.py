@@ -15,7 +15,8 @@ def send_email(user):
     msg.subject = "Kilnserver Password Reset"
     msg.recipients = [user.email_address]
     msg.html = render_template('reset_email.html', user=user, token=token)
-    Thread(target=send, args=(msg)).start()
+    #Thread(target=send, args=(msg)).start()
+    send(msg)
 
 def send(msg):
     ''' Send email asynchronously '''

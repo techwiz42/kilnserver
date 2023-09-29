@@ -12,12 +12,16 @@ app = Flask(__name__)
 mail = Mail(app)
 app.config.from_object(Config)
 app.db = SQLAlchemy(app)
-app.config['MAIL_SERVER'] = 'smtp.mail.com'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'kilnweb@mail.com'
-app.config['MAIL_PASSWORD'] = "fuzzy_logic"
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'thetechwizard42@gmail.com'
+app.config['MAIL_PASSWORD'] = 'iszq rdrg ofju qxtt'
 app.config['MAIL_DEBUG'] = False
+app.config['MAIL_SUPPRESS_SEND'] = False
+app.config['TESTING'] = False
+
 migrate = Migrate(app, app.db)
 bootstrap = Bootstrap(app)
 login = LoginManager(app)

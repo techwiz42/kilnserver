@@ -1,13 +1,23 @@
 {% extends 'layout.html' %}
 
-{% block header %}
-  <h1>{% block title %}Reset Password{% endblock %}</h1>
-{% endblock %}
-
-{% block content %}
-  <form method="post">
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Reset Password">
+{% block body %}
+  <h2>{% block title %}Reset Password{% endblock %}</h2>
+  <form action='' method="post">
+	  {{ form.hidden_tag() }}  
+     <p>
+            {{ form.password.label }}<br>
+            {{ form.password(size=32) }}<br>
+            {% for error in form.password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password2.label }}<br>
+            {{ form.password2(size=32) }}<br>
+            {% for error in form.password2.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
   </form>
 {% endblock %}

@@ -22,6 +22,13 @@ class RegistrationForm(FlaskForm):
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
 
+class PasswordResetForm(FlaskForm):
+    ''' user can reset password '''
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
+
 class ShowUserForm(FlaskForm):
     ''' Display a user's data and allow him/her to edit '''
     full_name = StringField("Full Name")

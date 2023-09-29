@@ -1,5 +1,6 @@
 '''The views module defines the app\'s available URLs '''
 import os
+import traceback
 from datetime import datetime, time
 from flask import request, redirect, url_for, render_template, flash
 from flask_login import current_user, login_user, logout_user, login_required
@@ -7,7 +8,7 @@ from flask_mail import Mail, Message
 from kilnweb2 import app
 from kilnweb2 import kiln_command, model, email
 from kilnweb2.model import User, Job
-from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm
+from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm, PasswordResetForm
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
@@ -65,23 +66,29 @@ def password_reset():
         email_address = request.form.get('email')
         user = User.verify_email(email_address)
         if user:
-            flash("An email has been sent to your inbox")
-            email.send_email(user)
+            try:
+                email.send_email(user)
+                flash("An email has been sent to your inbox")
+            except Exception as e:
+                print(traceback.format_exc())
         else:
             flash("Email address not found", "error")
     return redirect(url_for('login'))
 
 @app.route('/reset_verified/<token>', methods=['GET', 'POST'])
 def reset_verified(token):
+    form = PasswordResetForm()
     user = User.verify_reset_token(token)
     if not user:
         print('no user found')
         return redirect(url_for('login'))
     password = request.form.get('password')
     if password:
-        user.set_password(password, commit=True)
+        user.set_password(password)
+        app.db.session.commit()
+        flash("Password has been reset")
         return redirect(url_for('login'))
-    return render_template('reset_verified.html')
+    return render_template('reset_verified.html', form=form)
 
 @app.route('/show_jobs', methods = ['GET', 'POST'])
 @login_required

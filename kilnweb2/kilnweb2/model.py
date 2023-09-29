@@ -106,17 +106,17 @@ class User(UserMixin, app.db.Model):
         return check_password_hash(self.password_hash, password)
 
     def get_reset_token(self):
-        return jwt.encode(payload={'reset_password': self.username},
+        return jwt.encode(payload={'username': self.username},
                 key='it_is_a_secret',
                 algorithm="HS256")
 
     @staticmethod
     def verify_reset_token(token):
         try:
-            username = jwt.decode(jwt=token,
+            reset_dict = jwt.decode(jwt=token,
                     key='it_is_a_secret',
                     algorithms=['HS256'])
-
+            username = reset_dict.get('username')
         except Exception as e:
             print(traceback.format_exc())
             return
