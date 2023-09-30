@@ -67,7 +67,7 @@ def password_reset():
         user = User.verify_email(email_address)
         if user:
             try:
-                email.send_email(user)
+                email.send_password_reset_link(user)
                 flash("An email has been sent to your inbox")
             except Exception as e:
                 print(traceback.format_exc())
