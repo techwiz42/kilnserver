@@ -176,3 +176,5 @@ if __name__ == "__main__":
             RUNNING = False
     for thermocouple in thermocouples:
         thermocouple.cleanup()
+
+''' (c) 2023 Roger Carr - all rights reserved '''

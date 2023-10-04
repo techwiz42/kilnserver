@@ -17,3 +17,5 @@ def add_admin_user():
 
 if __name__ == '__main__':
   add_admin_user()
+
+''' (c) 2023 Roger Carr - all rights reserved '''

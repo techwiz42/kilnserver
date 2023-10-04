@@ -7,3 +7,5 @@ class Config(object):
   SECRET_KEY='099d77359a8c14d35c440b1589570f99'
   SQLALCHEMY_TRACK_MODIFICATIONS = False
   EXPLAIN_TEMPLATE_LOADING = False
+
+''' (c) 2023 Roger Carr - all rights reserved '''

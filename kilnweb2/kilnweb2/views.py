@@ -388,3 +388,5 @@ def stop_job():
     kiln_cmd.stop()
     flash("Job stopped.")
     return redirect(url_for('show_jobs'))
+
+''' (c) 2023 Roger Carr - all rights reserved '''

@@ -59,3 +59,5 @@ class NewJobForm(FlaskForm):
         name = Job.query.filter_by(name=name.data).first()
         if name is not None:
             raise ValidationError('Please choose a different name for your job')
+
+''' (c) Roger Carr - all rights reserved '''

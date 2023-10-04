@@ -335,3 +335,5 @@ def _to_bytes(s):
 
 if __name__ == "__main__":
     main()
+
+''' (c) 2023 Roger Carr - all rights reserved '''

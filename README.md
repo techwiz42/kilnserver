@@ -136,3 +136,5 @@ there needs to be some mechanism for a user to 'own' a kiln while it's running.
 * **Question for Roger**: should the kilncontroller be able to talk with multiple kilns? ## NO ##
 * Unit tests are required for kilnweb2 and kilncontrolller modules
 * Run pylint or similar to ensure code uniformity and adherence to proper python programming standards and conventions
+
+(c) 2023 Roger Carr - all rights reserved

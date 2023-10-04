@@ -3,10 +3,12 @@ from setuptools import setup
 setup(
     name = 'kilnweb2',
     packages=['kilnweb2'],
-    version="0.9.0",
+    version="1.0.0",
     include_package_data=True,
     install_requires=[
         'flask',
     ],
 )
+
+''' (c) 2023 Roger Carr - all rights reserved '''
         

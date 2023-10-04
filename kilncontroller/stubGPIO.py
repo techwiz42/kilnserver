@@ -22,3 +22,5 @@ def input(pin):
   
 def cleanup():
   pass
+
+''' (c) 2023 Roger Carr - all rights reserved '''

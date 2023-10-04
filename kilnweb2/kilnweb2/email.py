@@ -20,3 +20,5 @@ def send(msg):
     ''' Send email asynchronously '''
     with app.app_context():
         mail.send(msg)
+
+''' (c) 2023 Roger Carr - all rights reserved '''
