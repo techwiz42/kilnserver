@@ -1,20 +1,35 @@
 <!doctype html>
-<title>KilnWeb</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
-<div class=page>
-  <h1><a href="{{ url_for('show_jobs') }}">KilnWeb</a></h1>
+<head>
+	<title>KilnWeb</title>
+	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+	<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+	<style>
+		div.ex1 {
+  			width: 500px;
+  			margin: auto;
+	  		border: 5px solid #03c6fc;
+		}
+
+		div.ex2 {
+  			max-width: 700px;
+  			margin: auto;
+  			border: 5px solid #456f96;
+		}
+	</style>
+</head>
+<div class="ex2">
+  <h1 align="center"><a href="{{ url_for('show_jobs') }}">KilnWeb</a></h1>
   <div align="right">
     	{% if current_user.is_anonymous %}
-      		<a href="{{ url_for('login') }}">Login</a>
-      		<a href="{{ url_for('register') }}">Register</a>
+      		<a href="{{ url_for('login') }}">Login</a>&nbsp;
+      		<a href="{{ url_for('register') }}">Register</a>&nbsp;
     	{% else %}
-    		<a href="{{ url_for('show_user') }}"> {{ current_user.username }} </a>
-      		<a href="{{ url_for('show_jobs') }}">Show Jobs</a>
+	<a href="{{ url_for('show_user') }}"> {{ current_user.username }}</a>&nbsp;
+      		<a href="{{ url_for('show_jobs') }}">Show Jobs</a>&nbsp;
       		{% if current_user.is_admin %}
-        		<a href="{{ url_for('show_users') }}">Show Users</a>
+        		<a href="{{ url_for('show_users') }}">Show Users</a>&nbsp;
       		{% endif %}
-      		<a href="{{ url_for('logout') }}">Logout</a>
+      		<a href="{{ url_for('logout') }}">Logout</a>&nbsp;
     	{% endif %}
   </div>
   <div class=metanav>
@@ -22,5 +37,7 @@
   {% for message in get_flashed_messages() %}
     <div class=flash>{{ message }}</div>
   {% endfor %}
-  {% block body %}{% endblock %}
+  <div align="center">
+  	{% block body %}{% endblock %}
+  </div>
 </div>
