@@ -12,12 +12,14 @@
 		div.ex2 {
   			max-width: 700px;
   			margin: auto;
+			margin-top: 15px;
   			border: 5px solid #456f96;
 		}
 	</style>
 </head>
 <div class="ex2">
-  <h1 align="center"><a href="{{ url_for('show_jobs') }}">KilnWeb</a></h1>
+	<h1 align="center"><a href="{{ url_for('login') }}">KilnWeb</a></h1>
+
   <div align="right">
     	{% if current_user.is_anonymous %}
       		<a href="{{ url_for('login') }}">Login</a>&nbsp;
