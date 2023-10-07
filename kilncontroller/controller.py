@@ -15,6 +15,7 @@ try:
     print("Raspberry Pi GPIO found")
 except ImportError:
     # Assume we're not running on Pi hardware, import stub instead
+    # This is for development and testing only.
     import stubGPIO as GPIO
     print("Raspberry Pi GPIO NOT FOUND - running stub")
 
@@ -24,6 +25,9 @@ STOP = 'STOP'
 SOCK_PATH = '/tmp/kiln_controller'
 FARENHEIT = 'F'
 CELCIUS = 'C'
+# These are the pin numbers of the physical pins on the RPi header.
+# Choose any three GPIO pins, but the values here must be consistent 
+# with the leads on the MAX31855 thermocouple.
 CLK = 40 
 CS = 36
 DO = 38
