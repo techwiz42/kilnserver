@@ -108,10 +108,10 @@ def show_jobs():
         app.db.session.commit()
         flash("added job %r" % (name))
     kiln_cmd = kiln_command.KilnCommand()
-    run_state, running_job_id = kiln_cmd.status()
     running_job_info = None
     running_job_id = None
     running_job_user = None
+    run_state, running_job_id = kiln_cmd.status()
     if running_job_id is not None:
         running_job_info = model.Job.query.filter_by(id=running_job_id).first()
         if running_job_info is not None:
