@@ -1,7 +1,7 @@
 #!/usr/bin/python
 ''' Python driver for MAX38166 thermcouple '''
 try:
-    from RPi import GPIO
+    import RPi.GPIO as GPIO
 except ImportError:
     # Assume we're not running on Pi hardware, import stub instead
     import stubGPIO as GPIO
@@ -36,6 +36,7 @@ class MAX31855():
 
         # Initialize needed GPIO
         GPIO.setmode(self.board)
+        GPIO.setwarnings(False)
         GPIO.setup(self.cs_pin, GPIO.OUT)
         GPIO.setup(self.clock_pin, GPIO.OUT)
         GPIO.setup(self.data_pin, GPIO.IN)
