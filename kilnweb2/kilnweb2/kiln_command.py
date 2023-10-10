@@ -54,4 +54,4 @@ class KilnCommand:
 def _to_bytes(s):
   return bytes(s, encoding='utf-8')
 
-''' (c) 2023 Roger Carr - all rights reserved '''
+''' (c) 2023 Control Physics - all rights reserved '''

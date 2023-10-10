@@ -130,4 +130,4 @@ class User(UserMixin, app.db.Model):
 with app.app_context():
     app.db.create_all()
 
-''' (c) 2023 Roger Carr - all rights reserved '''
+''' (c) 2023 Control Physics - all rights reserved '''

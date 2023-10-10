@@ -60,4 +60,4 @@ class NewJobForm(FlaskForm):
         if name is not None:
             raise ValidationError('Please choose a different name for your job')
 
-''' (c) Roger Carr - all rights reserved '''
+''' (c) Control Physics - all rights reserved '''

@@ -33,4 +33,4 @@ create table users(
 
 insert into users(username, email_address) values('admin', 'changeme');
 
-''' (c) 2023 Roger Carr - all rights reserved '''
+''' (c) 2023 Control Physics - all rights reserved '''
