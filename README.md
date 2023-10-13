@@ -10,6 +10,32 @@ Users create and run jobs annealing jobs using the Flask web application.
 
 * Kilncontroller runs on the Raspberry Pi. It talks to the thermocouple and listens on a Unix socket for commands from kilnweb2.
 * Kilnweb2 is a Flask application that provides a web-based UI that allows take user commands and transmit them to kilncontroller.
+
+**Distribution and Setup**
+A complete image of the project is maintained privately. Contact Roger Carr to obtain a micro SD card containing the project. 
+Both the kilncontroller and kilnweb2 components run as services on the Raspberry Pi. Kilnweb2 is hosted on an NGINX web server 
+resident on the Pi. Check status, start, stop or restart all services like so:
+~~~
+>sudo systemctl <status/start/stop/restart> <name of service>
+~~~
+Example: start kilncontroller like so:
+~~~
+>sudo systemctl start kilncontroller
+~~~
+It should hardly ever be necessary to make changes to the status of any of these services. 
+
+The admin account and default password on the Raspberry Pi is kilnweb/fuzzy_logic. The hostname of the device is kilnweb. It is set to 
+be available via DHCP at http://kilnweb.local. Initially there is no admin user for the kilnweb app. in /home/kilnweb/kilnserver/kilnweb2
+there is a create_admin_user.py script. Invoke like so:
+~~~
+>python create_admin_user.py
+~~~
+Answer the prompts to create an admin user. The Raspberry Pi contains a wireless hotspot called kilnweb. Once the Pi is booted up, if it 
+is not connected to the kilnweb hotspot, please do so. At this point, users can register accounts at http://kilnweb.local. Until a kilnweb
+admin has authorized users, however, they may not view, create or run kiln control jobs. The admin can authorize users by clicking the show_users
+link on the main page.
+
+**Build Instructions**
 To clone the software onto your device, get it from github by:
 ~~~
 git clone https://github.com/techwiz42/kilnserver.git
