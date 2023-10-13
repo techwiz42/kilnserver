@@ -4,6 +4,7 @@ This project implements a novel fuzzy logic annealing algorithm developed by Rog
 detailed here. Contact Dr. Carr directly for details at roger.carr1@gmail.com
 
 **The Architecture**
+
 The project consists of a kiln controller running on a single-board computer connected to a temperature sensor located within a kiln.
 The kilncontroller process runs continuously, listening for commands via a unix socket connected to a Flask web-based user interface.
 Users create and run jobs annealing jobs using the Flask web application.
@@ -12,6 +13,7 @@ Users create and run jobs annealing jobs using the Flask web application.
 * Kilnweb2 is a Flask application that provides a web-based UI that allows take user commands and transmit them to kilncontroller.
 
 **Distribution and Setup**
+
 A complete image of the project is maintained privately. Contact Roger Carr to obtain a micro SD card containing the project. 
 Both the kilncontroller and kilnweb2 components run as services on the Raspberry Pi. Kilnweb2 is hosted on an NGINX web server 
 resident on the Pi. Check status, start, stop or restart all services like so:
