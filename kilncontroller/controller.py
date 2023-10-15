@@ -31,6 +31,7 @@ CELCIUS = 'C'
 CLK = 40 
 CS = 36
 DO = 38
+GPIO_PIN = 31
 
 class KilnController:
     '''This is the class that encapsulates the command structure for the kiln controller'''
@@ -47,8 +48,8 @@ class KilnController:
         self.job_id = None  # this is the ID of the running job, if any.
         self.units = units
         self.build_temp_table(self.units)
-        #set the GPIO pin to LOW, cuz my driver chip is inverting, so net active HIGH
-        self.gpio_pin = 26   #this is the pin number, not the GPIO channel number -
+        #set the GPIO pin to LOW
+        self.gpio_pin = GPIO_PIN   #this is the pin number, not the GPIO channel number
         GPIO.cleanup() # just in case
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
@@ -70,7 +71,7 @@ class KilnController:
         self.run_state = STOP
 
     def read_temp(self):
-        thermocouple = mx.MAX31855(CLK,CS,DO, 'f', board=GPIO.BOARD)
+        thermocouple = mx.MAX31855(CS, CLK, DO, 'f', board=GPIO.BOARD)
         temp = thermocouple.get()
         self.logger.debug(f"temp: {temp}")
         return float(temp)
@@ -83,7 +84,7 @@ class KilnController:
             ramp = abs(segment['target'] - prev_target) / segment['rate']
             seconds += ramp + segment['dwell']
             prev_target = segment['target']
-        return round(seconds)
+        return round(seconds * 60)
 
     # NOTE that the internal units of the temp table are F.
     # Job Steps are stored in the database as either C or F and
@@ -103,11 +104,11 @@ class KilnController:
             j = 1
             t = 0
             for m in range(t, t + int(ramp)):
-                self.temp_table.append((self.to_F(segment['target']) - previous_target) *
-                        j / ramp + previous_target)
+                self.temp_table.append(int(round((self.to_F(segment['target']) - previous_target) *
+                        j / ramp + previous_target)))
                 j += 1
             for m in range(t + int(ramp), t + int(ramp + segment['dwell'])):
-                self.temp_table.append(self.to_F(segment['target']))
+                self.temp_table.append(int(round(self.to_F(segment['target']))))
                 j += 1
             t = round(t + ramp + segment['dwell'])
             previous_target = self.to_F(segment['target'])
@@ -154,106 +155,108 @@ class KilnController:
         setdata = [self.set_point()]
         timedata = [self.runtime]
 
-        while (self.runtime - self.pausetime) < self.duration():
-        # Check run_state:
-            if self.run_state == PAUSE:
-                time.sleep(interval)
-                self.pausetime += interval
-            elif self.run_state == STOP:
-                return
-            elif self.run_state == RUN:
-                pass
-            else:
-                raise "Unknown run state '%s'" % (self.run_state)
+        try:
+            while (self.runtime - self.pausetime) < self.duration():
+            # Check run_state:
+                if self.run_state == PAUSE:
+                    time.sleep(interval)
+                    self.pausetime += interval
+                elif self.run_state == STOP:
+                    return
+                elif self.run_state == RUN:
+                    pass
+                else:
+                    raise "Unknown run state '%s'" % (self.run_state)
+                # find error and delta-error
+                tmeas = self.read_temp()   # degrees F
+                setpoint = self.set_point()  # degrees F
+                e = tmeas - setpoint # present error degrees F
+                d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
+                self.logger.debug("e = %.3f, d = %.3f"  % (e, d))
+                self.logger.debug("measured temperature = %.3f,  setpoint =  %.3f"  % (tmeas, setpoint))
+                print(f"measured temp {tmeas} setpoint {setpoint}")
+                lasterr = e
+
+                tempdata.append(tmeas)   #record data for plotting later
+                setdata.append(setpoint)
+                timedata.append(self.runtime)
+
+                # find degree of membership in the 5 membership functions for e and d
+                # make sure universe of discourse is large enough by increasing its size if e
+                # or d lie outside the default range.
+
+                if e > erange:
+                    erange = e  #adjust universe of discourse if error is outside present range
+                if e < -erange:
+                    erange = -e  
+                if d > drange:
+                    drange = d  #same for d
+                if d < -drange:
+                    drange = -d
+
+                #print"erange = ", erange, "   drange = ", drange
+
+                #generate 5 entry degree of membership lists for each of 4 regions, for e and d
+                if (e >= -erange) & (e < -erange/2):
+                    dome = [-2*e/erange -1,2*e/erange +2,0,0,0]
+                if (e >= -erange/2) & (e < 0):
+                    dome = [0,-2*e/erange,2*e/erange +1,0,0]
+                if (e >= 0) & (e < erange/2):
+                    dome = [0,0,-2*e/erange +1,2*e/erange ,0]
+                if (e >= erange/2) & (e <= erange):
+                    dome = [0,0,0,-2*e/erange +2,2*e/erange -1]
+
+                if (d >= -drange) & (d < -drange/2):
+                    domd = [-2*d/drange -1,2*d/drange +2,0,0,0]
+                if (d >= -drange/2) & (d < 0):
+                    domd = [0,-2*d/drange,2*d/drange +1,0,0]
+                if (d >= 0) & (d < drange/2): 
+                    domd = [0,0,-2*d/drange +1,2*d/drange ,0]
+                if (d >= drange/2) & (d <= drange): 
+                    domd = [0,0,0,-2*d/drange +2,2*d/drange -1]
       
-            # find error and delta-error
-            tmeas = self.read_temp()   # degrees F
-            setpoint = self.set_point()  # degrees F
-            e = tmeas - setpoint # present error degrees F
-            d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
-            self.logger.debug("e = %.3f, d = %.3f"  % (e, d))
-            self.logger.debug("measured temperature = %.3f,  setpoint =  %.3f"  % (tmeas, setpoint))
-            lasterr = e
+                # FIXME - what is this about?
+                #if (dome[0] <0) or (domd[-1] <0):
+                #    self.logger.debug(f" dome={dome}, domd={domd}, erange={erange}, drange={drange}")
 
-            tempdata.append(tmeas)   #record data for plotting later
-            setdata.append(setpoint)
-            timedata.append(self.runtime)
+                #Apply all 25 rules using minimum criterion
+                for i in range(0,5):     #range end condition is < end, not = end.
+                    for j in range(0,5):
+                        m[i,j] = min(dome[i],domd[j])  # should be zero except in  four cases
+                self.logger.debug(m)
 
-            # find degree of membership in the 5 membership functions for e and d
-            # make sure universe of discourse is large enough by increasing its size if e
-            # or d lie outside the default range.
-
-            if e > erange:
-                erange = e  #adjust universe of discourse if error is outside present range
-            if e < -erange:
-                erange = -e  
-            if d > drange:
-                drange = d  #same for d
-            if d < -drange:
-                drange = -d
-
-            #    print"erange = ", erange, "   drange = ", drange
-
-            #generate 5 entry degree of membership lists for each of 4 regions, for e and d
-            if (e >= -erange) & (e < -erange/2):
-                dome = [-2*e/erange -1,2*e/erange +2,0,0,0]
-            if (e >= -erange/2) & (e < 0):
-                dome = [0,-2*e/erange,2*e/erange +1,0,0]
-            if (e >= 0) & (e < erange/2):
-                dome = [0,0,-2*e/erange +1,2*e/erange ,0]
-            if (e >= erange/2) & (e <= erange):
-                dome = [0,0,0,-2*e/erange +2,2*e/erange -1]
-
-            if (d >= -drange) & (d < -drange/2):
-                domd = [-2*d/drange -1,2*d/drange +2,0,0,0]
-            if (d >= -drange/2) & (d < 0):
-                domd = [0,-2*d/drange,2*d/drange +1,0,0]
-            if (d >= 0) & (d < drange/2): 
-                domd = [0,0,-2*d/drange +1,2*d/drange ,0]
-            if (d >= drange/2) & (d <= drange): 
-                domd = [0,0,0,-2*d/drange +2,2*d/drange -1]
+                #defuzzify using an RMS calculation.  There are four values of heating,
+                #hhhh,hhh, hh,h, and one value of cooling z = 0.  There are 10 rules
+                #that have non-zero heating values, but all 25 must be evaluated in denominator.                                     
+                num = hhhh*math.sqrt(m[0,0]**2) + hhh*math.sqrt(m[0,1]**2 +m[1,0]**2) +\
+                    hh*math.sqrt(m[0,2]**2 + m[2,0]**2 + m[1,1]**2) + \
+                    h*math.sqrt(m[0,3]**2 + m[3,0]**2 + m[1,2]**2 + m[2,1]**2)
       
-            # FIXME - what is this about?
-            #if (dome[0] <0) or (domd[-1] <0):
-            #    self.logger.debug(f" dome={dome}, domd={domd}, erange={erange}, drange={drange}")
+                densq = 0
+                for i in range(0,4):    #the sum of all squares, unweighted
+                    for j in range(0,4):
+                        densq = densq + m[i,j]**2
+                den = math.sqrt(densq)
 
-            #Apply all 25 rules using minimum criterion
-            for i in range(0,5):     #range end condition is < end, not = end.
-                for j in range(0,5):
-                    m[i,j] = min(dome[i],domd[j])  # should be zero except in  four cases
-            self.logger.debug(m)
+                if den != 0:
+                    result = num/den   # should be between 0 and 1
+                if den == 0:
+                    result = 0
+                if den == 0:
+                    self.logger.debug("denominator = 0")
+                self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
 
-            #defuzzify using an RMS calculation.  There are four values of heating,
-            #hhhh,hhh, hh,h, and one value of cooling z = 0.  There are 10 rules
-            #that have non-zero heating values, but all 25 must be evaluated in denominator.                                     
-            num = hhhh*math.sqrt(m[0,0]**2) + hhh*math.sqrt(m[0,1]**2 +m[1,0]**2) +\
-                hh*math.sqrt(m[0,2]**2 + m[2,0]**2 + m[1,1]**2) + \
-                h*math.sqrt(m[0,3]**2 + m[3,0]**2 + m[1,2]**2 + m[2,1]**2)
-      
-            densq = 0
-            for i in range(0,4):    #the sum of all squares, unweighted
-                for j in range(0,4):
-                    densq = densq + m[i,j]**2
-            den = math.sqrt(densq)
-
-            if den != 0:
-                result = num/den   # should be between 0 and 1
-            if den == 0:
-                result = 0
-            if den == 0:
-                self.logger.debug("denominator = 0")
-            self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
-
-            self.kiln_on()
-            time.sleep(proportion*interval*result)   # wait for a number of seconds
-            self.kiln_off()
-            remainder = interval - proportion*interval*result  #should be positive, but...
-            if remainder > 0:
-                time.sleep(interval - proportion*interval*result) 
-            self.runtime = time.time() - self.start      #present time since start, seconds
-            self.logger.debug("runtime = %.3f, minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
-
+                self.kiln_on()
+                time.sleep(proportion*interval*result)   # wait for a number of seconds
+                self.kiln_off()
+                remainder = interval - proportion*interval*result  #should be positive, but...
+                if remainder > 0:
+                    time.sleep(interval - proportion*interval*result) 
+                self.runtime = time.time() - self.start      #present time since start, seconds
+                self.logger.debug("runtime = %.3f, minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
             #end of while loop
+        finally:
+            self.kiln_off()
 
 
 class KilnCommandProcessor:
