@@ -267,7 +267,7 @@ def __update_steps(job):
         if step_record is None:
             step_record = model.JobStep(job=job, target=target,
                     rate=rate, dwell=dwell, threshold=threshold)
-        else:
+        else: 
             step_record.target = target
             step_record.rate = rate
             step_record.dwell = dwell
@@ -275,13 +275,16 @@ def __update_steps(job):
         app.db.session.add(step_record)
         app.db.session.commit()
     #Add a new step
-    target = int(request.form["target"])
-    rate = int(request.form["rate"])
-    dwell = int(request.form["dwell"])
-    threshold = int(request.form["threshold"])
-    step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
-    app.db.session.add(step_record)
-    app.db.session.commit()
+    try:
+        target = int(request.form["target"])
+        rate = int(request.form["rate"])
+        dwell = int(request.form["dwell"])
+        threshold = int(request.form["threshold"])
+        step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
+        app.db.session.add(step_record)
+        app.db.session.commit()
+    except ValueError:
+        flash("All input values must be integers")
 
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
 @login_required
