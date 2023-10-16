@@ -20,13 +20,19 @@ class Job(app.db.Model):
     created = app.db.Column(app.db.DateTime)
     modified = app.db.Column(app.db.DateTime)
     units = app.db.Column(app.db.Text, default="F")
+    interval = app.db.Column(app.db.Integer)
+    erange = app.db.Column(app.db.Integer)
+    drange = app.db.Column(app.db.Integer)
     steps = app.db.relationship('JobStep', backref='job')
 
-    def __init__(self, user_id, name, comment, created, modified, units="F"):
+    def __init__(self, user_id, name, comment, interval, erange, drange, created, modified, units="F"):
         ''' class initializer '''
         self.comment = comment
         self.user_id = user_id
         self.name = name
+        self.interval = interval
+        self.erange = erange
+        self.drange = drange
         self.created = created
         self.modified = modified
         self.units = units
@@ -38,7 +44,7 @@ class Job(app.db.Model):
 
     def __repr__(self):
         ''' Returns the string representation of a row in the table '''
-        return f"<Job {self.id}, name={self.name}, user_id={self.user_id}, comment={self.comment}, created={self.created}, modified={self.modified}, units={self.units}>" 
+        return f"<Job {self.id}, name={self.name}, user_id={self.user_id}, comment={self.comment}, created={self.created}, modified={self.modified}, units={self.units}, interval={self.interval}, erange={self.erange}, drange={self.drange}>" 
 
 class JobStep(app.db.Model):
     ''' class representing a single step in the annealing or cooling job '''

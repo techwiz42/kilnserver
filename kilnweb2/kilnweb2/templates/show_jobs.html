@@ -19,6 +19,18 @@
       {{ form.name(size=32) }}
     </p>
     <p>
+    	{{ form.interval.label }}
+	{{ form.interval(size=16) }}
+    </p>
+    <p>
+	{{ form.erange.label }}
+	{{ form.erange(size=16) }}
+    </p>
+    <p>
+	{{ form.drange.label }}
+	{{ form.drange(size=16) }}
+    </p>
+    <p>
       {{ form.comment.label }}
       {{ form.comment(rows=3, cols=45) }}
     </p>

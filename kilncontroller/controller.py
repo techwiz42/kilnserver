@@ -35,7 +35,7 @@ GPIO_PIN = 31
 
 class KilnController:
     '''This is the class that encapsulates the command structure for the kiln controller'''
-    def __init__(self, segments, units, conn):
+    def __init__(self, segments, units, interval, erange, drange, conn):
         self.logger = logging.getLogger(__name__)
         handler = logging.FileHandler('/tmp/kilncontroller.log')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -54,6 +54,9 @@ class KilnController:
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         GPIO.setup(self.gpio_pin, GPIO.OUT, initial=GPIO.LOW)  #HIGH is on, LOW is off
+        self.interval = interval
+        self.erange = erange
+        self.drange = drange
 
     def __del__(self):
         GPIO.cleanup()
@@ -80,13 +83,14 @@ class KilnController:
     def duration(self):
         '''Returns the duration of the job in seconds'''
         seconds = 0
-        prev_target = 0
+        prev_target = self.to_F(self.read_temp())
         for segment in self.segments:
             #target is degrees, rate is degrees per hour so multiply 3600 to get seconds
-            ramp = abs(segment['target'] - prev_target) / segment['rate'] * 3600
+            ramp = (abs(segment['target'] - prev_target) / segment['rate']) * 3600
             #dwell is minutes, multiply by 60 to get seconds
-            seconds += ramp + segment['dwell']
+            seconds += (ramp + (segment['dwell'] * 60))
             prev_target = segment['target']
+        print(f"DURATION = {seconds}")
         return round(seconds)
 
     # NOTE that the internal units of the temp table are F.
@@ -145,9 +149,9 @@ class KilnController:
         self.start = time.time()
         m = empty((5,5),dtype=float)*0    # degree of membership matrix
 
-        interval = 5  #interval between updates, seconds
-        erange = 5  # default error range +/- 5
-        drange = 5 #default delta range
+        #interval = 5  #interval between updates, seconds
+        #erange = 5  # default error range +/- 5
+        #drange = 5 #default delta range
         lasterr = 0
 
         hhhh = 1.00   # these heating values will have to be adjusted, or not
@@ -162,10 +166,9 @@ class KilnController:
         tempdata = [self.read_temp()]
         setdata = [self.set_point()]
         timedata = [self.runtime]
-
+        duration = self.duration()
         try:
-            print(f"job duration = {self.duration()}")
-            while (self.runtime - self.pausetime) < self.duration():
+            while (self.runtime - self.pausetime) < duration:
             # Check run_state:
                 if self.run_state == PAUSE:
                     time.sleep(interval)
@@ -177,13 +180,13 @@ class KilnController:
                 else:
                     raise "Unknown run state '%s'" % (self.run_state)
                 # find error and delta-error
-                tmeas = self.read_temp()   # degrees F
+                tmeas = self.to_F(self.read_temp())   # degrees F
                 setpoint = self.set_point()  # degrees F
                 e = tmeas - setpoint # present error degrees F
                 d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
                 self.logger.debug("e = %.3f, d = %.3f"  % (e, d))
                 self.logger.debug("measured temperature = %.3f,  setpoint =  %.3f"  % (tmeas, setpoint))
-                pct_complete = (self.runtime - self.pausetime)/self.duration() * 100
+                pct_complete = (self.runtime - self.pausetime)/duration * 100
                 pct_compliant = tmeas/setpoint * 100
                 print("measured temp %.2f setpoint %.2f compliant %.2f pct complete %.2f" % (tmeas, setpoint, pct_compliant, pct_complete))
                 lasterr = e
@@ -196,35 +199,35 @@ class KilnController:
                 # make sure universe of discourse is large enough by increasing its size if e
                 # or d lie outside the default range.
 
-                if e > erange:
-                    erange = e  #adjust universe of discourse if error is outside present range
-                if e < -erange:
-                    erange = -e  
-                if d > drange:
-                    drange = d  #same for d
-                if d < -drange:
-                    drange = -d
+                if e > self.erange:
+                    self.erange = e  #adjust universe of discourse if error is outside present range
+                if e < -self.erange:
+                    self.erange = -e  
+                if d > self.drange:
+                    self.drange = d  #same for d
+                if d < -self.drange:
+                    self.drange = -d
 
                 #print"erange = ", erange, "   drange = ", drange
 
                 #generate 5 entry degree of membership lists for each of 4 regions, for e and d
-                if (e >= -erange) & (e < -erange/2):
-                    dome = [-2*e/erange -1,2*e/erange +2,0,0,0]
-                if (e >= -erange/2) & (e < 0):
-                    dome = [0,-2*e/erange,2*e/erange +1,0,0]
-                if (e >= 0) & (e < erange/2):
-                    dome = [0,0,-2*e/erange +1,2*e/erange ,0]
-                if (e >= erange/2) & (e <= erange):
-                    dome = [0,0,0,-2*e/erange +2,2*e/erange -1]
+                if (e >= -self.erange) & (e < -self.erange/2):
+                    dome = [-2*e/self.erange -1,2*e/self.erange +2,0,0,0]
+                if (e >= -self.erange/2) & (e < 0):
+                    dome = [0,-2*e/self.erange,2*e/self.erange +1,0,0]
+                if (e >= 0) & (e < self.erange/2):
+                    dome = [0,0,-2*e/self.erange +1,2*e/self.erange ,0]
+                if (e >= self.erange/2) & (e <= self.erange):
+                    dome = [0,0,0,-2*e/self.erange +2,2*e/self.erange -1]
 
-                if (d >= -drange) & (d < -drange/2):
-                    domd = [-2*d/drange -1,2*d/drange +2,0,0,0]
-                if (d >= -drange/2) & (d < 0):
-                    domd = [0,-2*d/drange,2*d/drange +1,0,0]
-                if (d >= 0) & (d < drange/2): 
-                    domd = [0,0,-2*d/drange +1,2*d/drange ,0]
-                if (d >= drange/2) & (d <= drange): 
-                    domd = [0,0,0,-2*d/drange +2,2*d/drange -1]
+                if (d >= -self.drange) & (d < -self.drange/2):
+                    domd = [-2*d/self.drange -1,2*d/self.drange +2,0,0,0]
+                if (d >= -self.drange/2) & (d < 0):
+                    domd = [0,-2*d/self.drange,2*d/self.drange +1,0,0]
+                if (d >= 0) & (d < self.drange/2): 
+                    domd = [0,0,-2*d/self.drange +1,2*d/self.drange ,0]
+                if (d >= self.drange/2) & (d <= self.drange): 
+                    domd = [0,0,0,-2*d/self.drange +2,2*d/self.drange -1]
       
                 # FIXME - what is this about?
                 #if (dome[0] <0) or (domd[-1] <0):
@@ -258,11 +261,11 @@ class KilnController:
                 self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
 
                 self.kiln_on()
-                time.sleep(proportion*interval*result)   # wait for a number of seconds
+                time.sleep(proportion*self.interval*result)   # wait for a number of seconds
                 self.kiln_off()
-                remainder = interval - proportion*interval*result  #should be positive, but...
+                remainder = self.interval - proportion*self.interval*result  #should be positive, but...
                 if remainder > 0:
-                    time.sleep(interval - proportion*interval*result) 
+                    time.sleep(remainder) 
                 self.runtime = time.time() - self.start      #present time since start, seconds
                 self.logger.debug("runtime = %.3f, minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
             print("Exiting WHILE loop")
@@ -317,8 +320,14 @@ class KilnCommandProcessor:
             conn.sendall(_to_bytes("PONG\n"))
         elif command_data['command'].upper() == 'START':
             # Start a job
-            self.kiln_controller = KilnController(command_data['steps'], command_data['units'], conn)
-            self.kiln_controller.job_id = command_data['job_id']
+            job_id = command_data['job_id']
+            self.kiln_controller = KilnController(command_data['steps'],
+                                                  command_data['units'],
+                                                  command_data['interval'],
+                                                  command_data['erange'],
+                                                  command_data['drange'],
+                                                  conn)
+            self.kiln_controller.job_id = job_id
             self.kiln_controller_thread = threading.Thread(target=self.kiln_controller.run)
             self.kiln_controller_thread.start()
         elif command_data['command'].upper() == 'STOP':

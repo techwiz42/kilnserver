@@ -102,8 +102,12 @@ def show_jobs():
     if form.validate_on_submit():
         name = form.name.data
         comment = form.comment.data
-        job = Job(name=name, comment=comment, user_id=current_user.id, created=datetime.now(),
-                        modified=datetime.now())
+        interval = form.interval.data
+        erange = form.erange.data
+        drange = form.drange.data
+        job = Job(name=name, comment=comment, user_id=current_user.id, 
+                    interval=interval, erange=erange, drange=drange,
+                    created=datetime.now(), modified=datetime.now())
         app.db.session.add(job)
         app.db.session.commit()
         flash("added job %r" % (name))
@@ -205,9 +209,10 @@ def parse_job(job_data):
         })
     return steps
 
-def add_job(name, comment):
+def add_job(name, interval, erange, drange, comment):
     ''' adds a job to the Job table in the db '''
     job = model.Job(name = name, comment=comment, user_id = current_user.id,
+            interval=interval, erange=erange, drange=drange,
             created = datetime.now(), modified = datetime.now())
     flash("adding a job")
     app.db.session.add(job)

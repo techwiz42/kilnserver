@@ -1,7 +1,7 @@
 ''' The user-defined forms for this Flask app '''
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, SubmitField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField, IntegerField
+from wtforms.validators import ValidationError, DataRequired, NumberRange, Email, EqualTo
 from kilnweb2.model import User, Job
 
 
@@ -51,6 +51,9 @@ class ShowUserForm(FlaskForm):
 class NewJobForm(FlaskForm):
     ''' Form for entering a new job '''
     name = StringField("Job Name", validators=[DataRequired()])
+    interval = IntegerField("Interval", validators=[DataRequired(), NumberRange(min=1, max=60)])
+    erange = IntegerField("ERange", validators=[DataRequired(), NumberRange(min=1, max=15)])
+    drange = IntegerField("DRange", validators=[DataRequired(), NumberRange(min=1, max=15)])
     comment = TextAreaField('Comment')
     submit = SubmitField("Add Job")
 
