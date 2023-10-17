@@ -59,7 +59,23 @@
             </select>
           </div>
         </div>
-        <p></p>
+        <p>
+	   <div class="row">
+		<div class="col-md-3"><b>Interval</b>&nbsp;
+		    <input type="text" id="interval" size="6" name="interval"
+			style="text-align:right" value="{{ job.interval }}" readonly/>&nbsp;Sec
+		</div>
+		<div class="col-md-3"><b>ERange</b>&nbsp;
+		    <input type="text" id="erange" size="6" name="erange"
+			style="text-align:right" value="{{ job.erange }}" readonly/>&nbsp;&deg;
+		</div>
+		<div class="col-md-3"><b>DRange</b>&nbsp;
+		    <input type="text" id="drange" size="6" name="dramge"
+			style="text-align:right" value="{{ job.drange }}" readonly/>&nbsp;&deg;
+		</div>
+	   </div>
+	</p>
+	<p>
         <div class="row">
           <div class="col-md-2"><b>Target</b></div>
           <div class="col-md-3"><b>Rate</b></div>
