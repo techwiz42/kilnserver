@@ -141,7 +141,14 @@ class KilnController:
         return retval
 
     def kiln_on(self):
-        GPIO.output(self.gpio_pin, GPIO.HIGH)
+        try:
+            GPIO.output(self.gpio_pin, GPIO.HIGH)
+        except:
+            GPIO.cleanup()
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setwarnings(False)
+            GPIO.setup(self.gpio_pin, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.output(self.gpio_pin, GPIO.HIGH)
 
     def kiln_off(self):
         GPIO.output(self.gpio_pin, GPIO.LOW)
@@ -281,11 +288,15 @@ class KilnController:
                     time.sleep(remainder) 
                 self.runtime = time.time() - self.start      #present time since start, seconds
                 self.logger.debug("runtime = %.3f, minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
+            self.kiln_off()
+            self.job_id = None
             print("Exiting RUN loop")
             self.logger.debug("Exiting RUN loop")
             #end of while loop
         finally:
-            self.kiln_off()
+            #self.stop()
+            #self.job_id = None
+            pass
 
 
 class KilnCommandProcessor:
