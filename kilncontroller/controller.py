@@ -57,6 +57,7 @@ class KilnController:
         self.interval = interval
         self.erange = erange
         self.drange = drange
+        self.kiln_off()
 
     def __del__(self):
         GPIO.cleanup()
@@ -65,12 +66,15 @@ class KilnController:
         return self.run_state
 
     def pause(self):
+        self.logger.debug("Pausing job")
         self.run_state = PAUSE
 
     def resume(self):
+        self.logger.debug("Resuming job")
         self.run_state = RUN
 
     def stop(self):
+        self.logger.debug("Stopping Job")
         self.run_state = STOP
 
     def read_temp(self):
@@ -90,7 +94,7 @@ class KilnController:
             #dwell is minutes, multiply by 60 to get seconds
             seconds += (ramp + (segment['dwell'] * 60))
             prev_target = segment['target']
-        print(f"DURATION = {seconds}")
+        self.logger.debug(f"JOB DURATION = {seconds}")
         return round(seconds)
 
     # NOTE that the internal units of the temp table are F.
@@ -101,22 +105,26 @@ class KilnController:
         self.logger.debug(f"start_temp is {repr(start_temp)} degrees F")
         previous_target = start_temp
         self.temp_table = [start_temp]
+        self.threshold_table = []
         for segment in self.segments:
-            rate = repr(self.to_F(segment['rate']))
-            target = repr(self.to_F(segment['target']))
-            dwell = repr(self.to_F(segment['dwell']))
+            rate = int(self.to_F(segment['rate']))
+            target = int(self.to_F(segment['target']))
+            dwell = int(self.to_F(segment['dwell']))
+            threshold = int(self.to_F(segment['threshold']))
             self.logger.debug(f"segment: rate: {rate} target: {target} dwell: {dwell})")
             rate_mins = self.to_F(segment['rate']) / 60.0
             ramp = int(round(abs((self.to_F(segment['target']) - previous_target) / rate_mins)))
             j = 1
             t = 0
-            for m in range(t, t + int(ramp)):
-                self.temp_table.append(int(round((self.to_F(segment['target']) - previous_target) *
-                        j / ramp + previous_target)))
+            for _ in range(t, t + int(ramp)):
+                self.temp_table.append(int(round(self.to_F(segment['target']) - previous_target) *
+                        j / ramp + previous_target))
                 j += 1
-            for m in range(t + int(ramp), t + int(ramp + segment['dwell'])):
+                self.threshold_table.append(threshold)
+            for _ in range(t + int(ramp), t + int(ramp + segment['dwell'])):
                 self.temp_table.append(int(round(self.to_F(segment['target']))))
                 j += 1
+                self.threshold_table.append(threshold)
             t = round(t + ramp + segment['dwell'])
             previous_target = self.to_F(segment['target'])
 
@@ -126,10 +134,10 @@ class KilnController:
         try:
             dT = self.temp_table[minute+1] - self.temp_table[minute]
             dt = seconds / 60 - minute
-            retval = self.temp_table[minute] + dT * dt
+            retval = (self.temp_table[minute] + dT * dt, self.threshold_table[minute])
         except IndexError:
             #We've reached the target temp
-            retval = self.temp_table[-1]
+            retval = (self.temp_table[-1], self.threshold_table[minute])
         return retval
 
     def kiln_on(self):
@@ -181,7 +189,12 @@ class KilnController:
                     raise "Unknown run state '%s'" % (self.run_state)
                 # find error and delta-error
                 tmeas = self.to_F(self.read_temp())   # degrees F
-                setpoint = self.set_point()  # degrees F
+                setpoint, threshold = self.set_point()  # degrees F
+                if tmeas > threshold:
+                    self.kiln_off()
+                    print("Threshold temperature exceeded. Kiln is OFF and run is terminated.")
+                    self.logger.debug("Threshold temperature exceeded. Kiln is OFF and run is TERMINATED")
+                    break
                 e = tmeas - setpoint # present error degrees F
                 d = e - lasterr # positive for increasing error, neg for decreasing error - degrees F
                 self.logger.debug("e = %.3f, d = %.3f"  % (e, d))
@@ -268,7 +281,8 @@ class KilnController:
                     time.sleep(remainder) 
                 self.runtime = time.time() - self.start      #present time since start, seconds
                 self.logger.debug("runtime = %.3f, minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
-            print("Exiting WHILE loop")
+            print("Exiting RUN loop")
+            self.logger.debug("Exiting RUN loop")
             #end of while loop
         finally:
             self.kiln_off()
