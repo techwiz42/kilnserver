@@ -50,7 +50,9 @@ class KilnCommand:
       status_data = json.loads(data)
       state = status_data['state']
       job_id = status_data['job_id']
-    return [state,job_id]
+      tmeas = status_data['tmeas']
+      setpoint = status_data['setpoint']
+    return [state, job_id, tmeas, setpoint]
 
 def _to_bytes(s):
   return bytes(s, encoding='utf-8')

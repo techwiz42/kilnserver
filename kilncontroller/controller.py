@@ -370,13 +370,19 @@ class KilnCommandProcessor:
         elif command_data['command'].upper() == 'STATUS':
             state = 'IDLE'
             job_id = str(-1)
+            tmeas = "N/A"
+            setpoint = "N/A"
             if self.kiln_controller is not None:
                 job_id = self.kiln_controller.job_id
                 if job_id is not None and job_id != '-1':
                     state = self.kiln_controller.run_state
+                    tmeas = self.kiln_controller.read_temp()
+                    setpoint = self.kiln_controller.set_point()[0]
                 else:
                     self.kiln_controller.run_state = state
-            response = json.dumps({'response': 'status', 'state': state, 'job_id': job_id })
+            response = json.dumps({'response': 'status', 
+                                   'state': state, 'job_id': job_id,
+                                   'tmeas': tmeas, 'setpoint': setpoint})
             conn.sendall(_to_bytes(response + "\n"))
 
     def run(self):

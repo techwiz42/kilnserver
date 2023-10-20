@@ -73,6 +73,28 @@ class JobStep(app.db.Model):
         if key in self.__dict__:
             return self.__dict__[key]
 
+class JobRecord(app.db.Model):
+    __tablename__ = 'job_record'
+    id = app.db.Column(app.db.Integer, primary_key=True)
+    job_id = app.db.Column(app.db.Integer, app.db.ForeignKey('jobs.id'))
+    realtime = app.db.Column(app.db.Integer)
+    tmeas = app.db.Column(app.db.Float)
+    setpoint = app.db.Column(app.db.Float)
+
+    def __init__(self, job, realtime, tmeas, setpoint):
+        self.job_id = job.id
+        self.realtime = realtime
+        self.tmeas = tmeas
+        self.setpoint = setpoint
+
+    def __repr__(self):
+        return '<JobRecord %r realtime=%r tmeas=%r setpoint=%r>' % (self.id, self.realtime, self.tmeas, self.setpoint)
+
+
+    def __getitem(self, key):
+        if key in self.__dict__:
+            return self.__dict__[key]
+
 class User(UserMixin, app.db.Model):
     ''' Class representing a user '''
     __tablename__ = "users"

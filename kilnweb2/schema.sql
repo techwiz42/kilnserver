@@ -22,6 +22,15 @@ create table job_steps (
   threshold integer not null
  );
 
+drop table if exists job_record;
+create table job_record (
+  id integer primary key autoincrement,
+  job_id integer not null,
+  realtime integer not null,
+  tmeas real not null,
+  setpoint real not null
+);
+
 drop table if exists users;
 create table users(
   id integer primary key autoincrement,
