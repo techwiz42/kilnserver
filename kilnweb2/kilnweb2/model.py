@@ -80,20 +80,37 @@ class JobRecord(app.db.Model):
     realtime = app.db.Column(app.db.Integer)
     tmeas = app.db.Column(app.db.Float)
     setpoint = app.db.Column(app.db.Float)
+    run_number = app.db.Column(app.db.Integer)
 
-    def __init__(self, job, realtime, tmeas, setpoint):
-        self.job_id = job.id
+    def __init__(self, job_id, realtime, tmeas, setpoint, run_number):
+        self.job_id = job_id
         self.realtime = realtime
         self.tmeas = tmeas
         self.setpoint = setpoint
+        self.run_number = run_number
 
     def __repr__(self):
-        return '<JobRecord %r realtime=%r tmeas=%r setpoint=%r>' % (self.id, self.realtime, self.tmeas, self.setpoint)
+        return '<JobRecord=%r realtime=%r tmeas=%r setpoint=%r run_number=%r>' % (self.id, self.realtime, self.tmeas, self.setpoint, self.run_number)
 
 
-    def __getitem(self, key):
+    def __getitem__(self, key):
         if key in self.__dict__:
             return self.__dict__[key]
+
+class KeyStore(app.db.Model):
+    __tablename__ = 'key_store'
+    key = app.db.Column(app.db.String(16), primary_key=True, unique=True)
+    value = app.db.Column(app.db.Integer)
+
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+    
+    def __repr__(self):
+        return '<key=%r value=%r>' % (self.key, self.value)
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
 
 class User(UserMixin, app.db.Model):
     ''' Class representing a user '''

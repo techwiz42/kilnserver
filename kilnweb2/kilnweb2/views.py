@@ -9,7 +9,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from flask_mail import Mail, Message
 from kilnweb2 import app
 from kilnweb2 import kiln_command, model, email
-from kilnweb2.model import User, Job, JobRecord
+from kilnweb2.model import User, Job, JobRecord, KeyStore
 from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm, PasswordResetForm
 
 @app.route('/', methods = ['GET', 'POST'])
@@ -366,18 +366,26 @@ def start_job(job_id):
     started = False
     if request.method == 'POST':
         kiln_cmd = kiln_command.KilnCommand()
+        key_store = model.KeyStore.query.filter_by(key="run_number").first()
+        key_store.value += 1
         kiln_cmd.start(job_id)
-        job_record_thread = threading.Thread(target=_job_record_thread, args=(job, kiln_cmd))
+        job_record_thread = threading.Thread(target=_job_record_thread, args=(job.id, kiln_cmd, key_store.value))
         job_record_thread.start()
+        job_record_thread.join()
+        app.db.session.commit()
         flash(f"Job {job.name} started.")
         started = True
     return render_template('start_job.html', job=job, started=started)
 
-def _job_record_thread(job, kiln_cmd):
+def _job_record_thread(job_id, kiln_cmd, run_number):
     job_status, _, tmeas, setpoint = kiln_cmd.status()
     while job_status == "RUN":
         with app.app_context():
-            job_record = JobRecord(job=job, realtime=tm.time(), tmeas=tmeas, setpoint=setpoint)
+            job_record = JobRecord(job_id=job_id, 
+                                   realtime=tm.time(), 
+                                   tmeas=tmeas,
+                                   setpoint=setpoint,
+                                   run_number=run_number)
             app.db.session.add(job_record)
             app.db.session.commit()
             tm.sleep(5)
