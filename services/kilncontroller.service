@@ -1,0 +1,15 @@
+[Unit]
+Description=KilnController Service
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/home/kilnweb/kilnserver/kilncontroller
+Environment=/home/kilnweb/.virtualenvs/kiln/bin
+ExecStart=python /home/kilnweb/kilnserver/kilncontroller/controller.py
+ExecReload=/bin/kil -h HUP $MAINPID
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

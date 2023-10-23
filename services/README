@@ -1,0 +1,5 @@
+The two .service files in this directory must be copied to /etc/systemd/system
+The kilnweb2 file must be copied to /etc/nginx/sites-available.
+After copying, create a link to it in /etc/nginx/sites-enabled like so:
+>sudo ln -s /etc/nginx/sites-available/kilnweb2 /etc/nginx/sites-enabled
+Then delete 'default' from sites-available and sites-enabled.

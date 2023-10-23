@@ -1,0 +1,9 @@
+server {
+    listen 80;
+    server_name kilnweb.local;
+
+    location / {
+	include proxy_params;
+	proxy_pass http://unix:/home/kilnweb/kilnserver/kilnweb2/kilnweb2.sock;
+    }
+}

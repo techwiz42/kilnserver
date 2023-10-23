@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve KilnWeb
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/home/kilnweb/kilnserver/kilnweb2
+Environment="PATH=/home/kilnweb/.virtualenvs/kiln/bin"
+ExecStart=/home/kilnweb/.virtualenvs/kiln/bin/gunicorn --workers 3 --bind unix:kilnweb2.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
