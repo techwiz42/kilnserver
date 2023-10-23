@@ -3,3 +3,7 @@ The kilnweb2 file must be copied to /etc/nginx/sites-available.
 After copying, create a link to it in /etc/nginx/sites-enabled like so:
 >sudo ln -s /etc/nginx/sites-available/kilnweb2 /etc/nginx/sites-enabled
 Then delete 'default' from sites-available and sites-enabled.
+
+All files should be owned by kilnweb:www-data. Permissions should be set to 755:
+>sudo chmod 755 /home/kilnweb/kilnserver
+

@@ -37,7 +37,7 @@ class KilnController:
     '''This is the class that encapsulates the command structure for the kiln controller'''
     def __init__(self, segments, units, interval, erange, drange, conn):
         self.logger = logging.getLogger(__name__)
-        handler = logging.FileHandler('/tmp/kilncontroller.log')
+        handler = logging.FileHandler('/var/log/kilnweb/kilncontroller.log')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler) 
@@ -129,12 +129,15 @@ class KilnController:
             previous_target = self.to_F(segment['target'])
 
     def set_point(self):
-        seconds = self.runtime - self.pausetime
+        seconds = max(self.runtime - self.pausetime, 0)
         minute = int(math.floor(seconds / 60))
         try:
-            dT = self.temp_table[minute+1] - self.temp_table[minute]
-            dt = seconds / 60 - minute
-            retval = (self.temp_table[minute] + dT * dt, self.threshold_table[minute])
+            if self.run_state != PAUSE:
+                dT = self.temp_table[minute+1] - self.temp_table[minute]
+                dt = seconds / 60 - minute
+                retval = (self.temp_table[minute] + dT * dt, self.threshold_table[minute])
+            else:
+                retval = (self.temp_table[minute], self.temp_table[minute])
         except IndexError:
             #We've reached the target temp
             retval = (self.temp_table[-1], self.threshold_table[minute])
@@ -185,21 +188,23 @@ class KilnController:
         try:
             while (self.runtime - self.pausetime) < duration:
             # Check run_state:
-                if self.run_state == PAUSE:
-                    time.sleep(interval)
-                    self.pausetime += interval
-                elif self.run_state == STOP:
-                    return
-                elif self.run_state == RUN:
+                if self.run_state in [RUN, PAUSE]:
+
+                    #self.pausetime += interval
+                    #self.logger.debug(f"pause calculation: {self.runtime - self.pausetime} < {duration}")
+                    #time.sleep(interval)
                     pass
-                else:
-                    raise "Unknown run state '%s'" % (self.run_state)
+                if self.run_state == STOP:
+                    break
                 # find error and delta-error
+                self.logger.debug(f"Run state is {self.run_state}")
                 tmeas = self.to_F(self.read_temp())   # degrees F
                 setpoint, threshold = self.set_point()  # degrees F
-                if tmeas > threshold:
+                if self.run_state == PAUSE:
                     self.kiln_off()
-                    print("Threshold temperature exceeded. Kiln is OFF and run is terminated.")
+                    self.logger.debug("Pausing job")
+                elif tmeas > threshold:
+                    self.kiln_off()
                     self.logger.debug("Threshold temperature exceeded. Kiln is OFF and run is TERMINATED")
                     break
                 e = tmeas - setpoint # present error degrees F
@@ -208,7 +213,7 @@ class KilnController:
                 self.logger.debug("measured temperature = %.3f,  setpoint =  %.3f"  % (tmeas, setpoint))
                 pct_complete = (self.runtime - self.pausetime)/duration * 100
                 pct_compliant = tmeas/setpoint * 100
-                print("measured temp %.2f setpoint %.2f compliant %.2f pct complete %.2f" % (tmeas, setpoint, pct_compliant, pct_complete))
+                self.logger.debug("measured temp %.2f setpoint %.2f compliant %.2f pct complete %.2f" % (tmeas, setpoint, pct_compliant, pct_complete))
                 lasterr = e
 
                 tempdata.append(tmeas)   #record data for plotting later
@@ -257,7 +262,7 @@ class KilnController:
                 for i in range(0,5):     #range end condition is < end, not = end.
                     for j in range(0,5):
                         m[i,j] = min(dome[i],domd[j])  # should be zero except in  four cases
-                self.logger.debug(m)
+                #self.logger.debug(m)
 
                 #defuzzify using an RMS calculation.  There are four values of heating,
                 #hhhh,hhh, hh,h, and one value of cooling z = 0.  There are 10 rules
@@ -278,19 +283,21 @@ class KilnController:
                     result = 0
                 if den == 0:
                     self.logger.debug("denominator = 0")
-                self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
-
-                self.kiln_on()
-                time.sleep(proportion*self.interval*result)   # wait for a number of seconds
-                self.kiln_off()
-                remainder = self.interval - proportion*self.interval*result  #should be positive, but...
-                if remainder > 0:
-                    time.sleep(remainder) 
-                self.runtime = time.time() - self.start      #present time since start, seconds
-                self.logger.debug("runtime = %.3f, minutes; pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
+                #self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
+                if self.run_state != PAUSE:
+                    self.kiln_on()
+                    time.sleep(proportion*self.interval*result)   # wait for a number of seconds
+                    self.kiln_off()
+                    remainder = self.interval - proportion*self.interval*result  #should be positive, but...
+                    if remainder > 0:
+                        time.sleep(remainder) 
+                        self.runtime = time.time() - self.start      #present time since start, seconds
+                        self.logger.debug("runtime = %.3f minutes pausetime = %.3f minutes" % (self.runtime/60, self.pausetime/60))
+                else:
+                    time.sleep(self.interval)
+                    self.pausetime += self.interval
             self.kiln_off()
             self.job_id = None
-            print("Exiting RUN loop")
             self.logger.debug("Exiting RUN loop")
             #end of while loop
         finally:
