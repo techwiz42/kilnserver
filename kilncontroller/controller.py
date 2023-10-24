@@ -36,7 +36,7 @@ GPIO_PIN = 31
 class KilnController:
     '''This is the class that encapsulates the command structure for the kiln controller'''
     def __init__(self, segments, units, interval, erange, drange, conn):
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("Controller")
         handler = logging.FileHandler('/var/log/kilnweb/kilncontroller.log')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
@@ -308,8 +308,8 @@ class KilnController:
 
 class KilnCommandProcessor:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        handler = logging.FileHandler('/tmp/kilncommandprocessor.log')
+        self.logger = logging.getLogger("Command Processor")
+        handler = logging.FileHandler('/var/log/kilnweb/kilncommandprocessor.log')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler) 
@@ -367,6 +367,7 @@ class KilnCommandProcessor:
                 self.kiln_controller.stop()
                 self.kiln_controller_thread.join(30) # 30 sec timeout
                 self.kiln_controller.job_id = None
+                self.kiln_controller.logger.handlers = []
                 self.kiln_controller = None
         elif command_data['command'].upper() == 'PAUSE':
             if self.kiln_controller is not None:
