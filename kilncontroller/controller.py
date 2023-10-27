@@ -140,7 +140,7 @@ class KilnController:
                 retval = (self.temp_table[minute], self.temp_table[minute])
         except IndexError:
             #We've reached the target temp
-            retval = (self.temp_table[-1], self.threshold_table[minute])
+            retval = (self.temp_table[-1], self.threshold_table[-1])
         return retval
 
     def kiln_on(self):
