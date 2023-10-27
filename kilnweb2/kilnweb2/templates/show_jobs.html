@@ -40,7 +40,7 @@
   <ul class=entries>
   {% for job in jobs %}
     <li>
-      <a href="{{ url_for('show_job_steps', job_id=job.id) }}">{{ job.name }}</a> ({{ job.steps|length }})
+      <a href="{{ url_for('show_job_steps', job_id=job.id) }}" title="View/Edit Job">{{ job.name }}</a> ({{ job.steps|length }})
       {% if not running_job_id == '-1' and (job.id == running_job_id) %}
         <a href="{{ url_for('stop_job', job_id=job.id) }}">Stop</a>&nbsp;
 	{% if run_state == "RUN" %}

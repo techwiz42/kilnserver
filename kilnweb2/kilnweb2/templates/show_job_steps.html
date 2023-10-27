@@ -88,10 +88,10 @@
         <div class="row">
           <div class="form-group">
             <input type="hidden" name="id" value="{{ step.id }}"/>
-            <div class="col-md-2"><input type="text" id='target' size="6" name="target[{{ step.id }}]" style="text-align:right;" value="{{ step.target }}" readonly/>&nbsp;&deg;&nbsp;</div>
-            <div class="col-md-3"><input type="text" id='rate' size="6" name="rate[{{ step.id }}]" style="text-align:right;" value="{{ step.rate }}" readonly/>&nbsp;&deg;/hour</div>
-            <div class="col-md-2"><input type="text" id='dwell' size="6" name="dwell[{{ step.id }}]" style="text-align:right;" value="{{ step.dwell }}" readonly/>&nbsp;min</div>
-            <div class="col-md-2"><input type="text"  id='threshold' size="6" name="threshold[{{ step.id }}]" style="text-align:right;" value="{{ step.threshold }}" readonly/>&nbsp;&deg;</div>
+            <div class="col-md-2"><input type="number" id='target' size="6" name="target[{{ step.id }}]" style="text-align:right;" value="{{ step.target }}" readonly/>&nbsp;&deg;&nbsp;</div>
+            <div class="col-md-3"><input type="number" id='rate' size="6" name="rate[{{ step.id }}]" style="text-align:right;" value="{{ step.rate }}" readonly/>&nbsp;&deg;/hour</div>
+            <div class="col-md-2"><input type="number" id='dwell' size="6" name="dwell[{{ step.id }}]" style="text-align:right;" value="{{ step.dwell }}" readonly/>&nbsp;min</div>
+            <div class="col-md-2"><input type="number"  id='threshold' size="6" name="threshold[{{ step.id }}]" style="text-align:right;" value="{{ step.threshold }}" readonly/>&nbsp;&deg;</div>
             <div class="col-md-2">
               <a title="Delete Step" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}">
 	        <i class="glyphicon glyphicon-remove" style="color:red"></i>
@@ -102,10 +102,10 @@
         {% endfor %}
         <div class="row">
           <div class="form-group">
-            <div class="col-md-2"><input type="text" id="target" size="6" name="target" style="text-align:right;" value="" required/>&nbsp;&deg;</div>	  
-            <div class="col-md-3"><input type="text" id="rate" size="6" name="rate" style="text-align:right;" value="" required/>&nbsp;&deg;/hour</div>
-	    <div class="col-md-2"><input type="text" id="dwell" size="6" name="dwell" style="text-align:right;" value="" required/>&nbsp;min</div>
-	    <div class="col-md-2"><input type="text" id="threshold" size="6" name="threshold" style="text-align:right;" value="" required/>&nbsp;&deg;</div>
+            <div class="col-md-2"><input type="number" id="target" size="6" name="target" style="text-align:right;" value="" required/>&nbsp;&deg;</div>	  
+            <div class="col-md-3"><input type="number" id="rate" size="6" name="rate" min=1 style="text-align:right;" value="" required/>&nbsp;&deg;/hour</div>
+	    <div class="col-md-2"><input type="number" id="dwell" size="6" name="dwell" style="text-align:right;" value="" required/>&nbsp;min</div>
+	    <div class="col-md-2"><input type="number" id="threshold" size="6" name="threshold" style="text-align:right;" value="" required/>&nbsp;&deg;</div>
 	    <div class="col-md-2"><input type="submit" value="Add Step"/></div>
 	  </div>
 	</div>
@@ -115,13 +115,5 @@
       </div> <!-- end vertical-center -->
     </form>
     <div class=row></div>
-  <ul>
-    <li><a href="{{ url_for('show_jobs') }}">Back to job list</a></li>
-    <li><a href="{{ url_for('start_job', job_id=job.id) }}">Start</a></li>
-    <li><a href="{{ url_for('pause_job') }}">Pause Job</a></li>
-    <li><a href="{{ url_for('resume_job') }}">Resume Job</a></li>
-    <li><a href="{{ url_for('stop_job') }}">Stop Job</a></li>
-    <li><a href="{{ url_for('delete_job', job_id=job.id) }}" class="delete">Delete Job</a></li>
-  </ul>
 </div>
 {% endblock %}
