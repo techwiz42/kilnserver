@@ -4,6 +4,10 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
     <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
     <script src="{{ url_for('static', filename='jquery_3.4.1_min.js') }}"></script>
+    <!--script type="module" src="/static/node_modules/chart.js/dist/chart.js"></script-->
+    <script
+	src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
+    </script>
     <script type="text/javascript">
       function change_units(selector) {
         data = selector.value;
@@ -21,8 +25,6 @@
 
     </script>
 
-{% endblock %}
-{% block body %}
 <div class="container">
   <div class="h1" align="center"><a href="{{ url_for('show_jobs') }}">KilnWeb</a></div>
   <hr/>
@@ -111,9 +113,39 @@
 	</div>
         </div>  <!-- end scrolling window -->
     </div> <!-- end jumbotron -->
+    <div class=row>&nbsp;</div>
+    {% if run_state != 'IDLE' %}
+        <div class=jumbotron id="graph_display" name="graph display"> <!-- graph display jumbotron -->
+            <div style="height: 50vh; width: 50%;">
+                <canvas id="myChart" name="myChart"></canvas>
+            </div>
+	</div> <!-- end graph display jumbotron -->
+	<script type="module">
+ 		var ctx = document.getElementById("myChart").getContext("2d");
+		var lineChart = new Chart(ctx, {
+			type: "line",
+			data: {
+				labels: {{ sample_labels | safe }},
+				datasets: [
+					{
+						label: "Data Points",
+						data: {{ sample_data | safe }},
+						fill: false, 
+						borderColor: "rgb(75, 192, 192)",
+						lineTension: 0.1
+					}
+				]
+			},
+			options: {
+				responsive: false
+			}
+		});
+        </script>
+
+
+    {% endif %}
       </div> <!-- end jumbotron offset -->
       </div> <!-- end vertical-center -->
     </form>
-    <div class=row></div>
 </div>
 {% endblock %}

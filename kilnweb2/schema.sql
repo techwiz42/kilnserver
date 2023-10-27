@@ -38,6 +38,8 @@ create table key_store (
   value integer not null
 );
 
+insert into key_store (key, value) values ('run_number', 0);
+
 drop table if exists users;
 create table users(
   id integer primary key autoincrement,

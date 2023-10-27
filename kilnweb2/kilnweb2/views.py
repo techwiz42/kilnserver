@@ -226,13 +226,28 @@ def show_job_steps(job_id):
     ''' display job steps '''
     kiln_cmd = kiln_command.KilnCommand()
     run_state, _, _, _ = kiln_cmd.status()
+    print(f"****** run_state is a {type(run_state)}")
     job = model.Job.query.filter_by(id=job_id).first()
     if not job.user_id == current_user.id:
         flash("Accessing someone else's job is strictly not allowed.")
         flash("This infraction has been logged.")
         return  redirect(url_for('show_jobs'))
+    sample_labels = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+    ]
+
+    sample_data = [0, 10, 15, 8, 22, 18, 25]
     job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
-    return render_template('show_job_steps.html', job=job, job_steps=job_steps, run_state=run_state)
+    return render_template('show_job_steps.html', job=job,
+                           job_steps=job_steps,
+                           run_state=run_state,
+                           sample_labels=sample_labels,
+                           sample_data=sample_data)
 
 @app.route('/job/<int:job_id>/remove_step')
 @login_required
@@ -417,5 +432,6 @@ def stop_job():
     kiln_cmd.stop()
     flash("Job stopped.")
     return redirect(url_for('show_jobs'))
+
 
 ''' (c) 2023 Control Physics - all rights reserved '''
