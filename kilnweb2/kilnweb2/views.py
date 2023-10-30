@@ -2,9 +2,10 @@
 import os
 import traceback
 import threading
+import json
 import time as tm
 from datetime import datetime, time
-from flask import request, redirect, url_for, render_template, flash
+from flask import request, Response, stream_with_context, redirect, url_for, render_template, flash
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_mail import Mail, Message
 from kilnweb2 import app
@@ -226,28 +227,15 @@ def show_job_steps(job_id):
     ''' display job steps '''
     kiln_cmd = kiln_command.KilnCommand()
     run_state, _, _, _ = kiln_cmd.status()
-    print(f"****** run_state is a {type(run_state)}")
     job = model.Job.query.filter_by(id=job_id).first()
     if not job.user_id == current_user.id:
         flash("Accessing someone else's job is strictly not allowed.")
         flash("This infraction has been logged.")
         return  redirect(url_for('show_jobs'))
-    sample_labels = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-    ]
-
-    sample_data = [0, 10, 15, 8, 22, 18, 25]
     job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
     return render_template('show_job_steps.html', job=job,
                            job_steps=job_steps,
-                           run_state=run_state,
-                           sample_labels=sample_labels,
-                           sample_data=sample_data)
+                           run_state=run_state)
 
 @app.route('/job/<int:job_id>/remove_step')
 @login_required
@@ -272,11 +260,11 @@ def update_job_steps(job_id):
         flash("Accessing someone else's job is strictly not allowed.")
         flash("This infraction has been logged.")
         return  redirect(url_for('show_jobs'))
-    __update_steps(job)
+    _update_steps(job)
     flash("Job %s updated" % job.name)
     return redirect(url_for('show_job_steps', job_id=job.id))
 
-def __update_steps(job):
+def _update_steps(job):
     ''' the internals for update_job_steps '''
     for step_id in request.form.getlist('id'):
         #update existing steps
@@ -316,7 +304,7 @@ def add_job_step(job_id):
         flash("Accessing someone else's job is strictly not allowed.")
         flash("This infraction has been logged.")
         return  redirect(url_for('show_jobs'))
-    __update_steps(job)
+    _update_steps(job)
     flash("Job step added.")
     return redirect(url_for('show_job_steps', job_id=job_id))
 
@@ -405,6 +393,26 @@ def _job_record_thread(job_id, kiln_cmd, run_number):
                 app.db.session.commit()
                 tm.sleep(5)
                 job_status, _, tmeas, setpoint = kiln_cmd.status()
+
+@app.route('/chart-data')
+def chart_data():
+    kiln_cmd = kiln_command.KilnCommand()
+    def _generate_chart_data():
+        start_time = tm.time()
+        while True:
+            job_status, _, tmeas, setpoint = kiln_cmd.status()
+            if job_status == 'RUN':
+                time_now = round((tm.time() - start_time))
+                json_data = json.dumps({'time_now': time_now, 'tmeas': tmeas, 'setpoint': setpoint})
+                yield f"data:{json_data}\n\n"
+                tm.sleep(5)
+
+    response = Response(stream_with_context(_generate_chart_data()), mimetype="text/event-stream")
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["X-Accel-Buffering"] = "no"
+    return response
+
+
 
 @app.route('/job/pause')
 @login_required
