@@ -395,24 +395,40 @@ def _job_record_thread(job_id, kiln_cmd, run_number):
                 job_status, _, tmeas, setpoint = kiln_cmd.status()
 
 @app.route('/chart-data')
+@login_required
 def chart_data():
     kiln_cmd = kiln_command.KilnCommand()
     def _generate_chart_data():
         start_time = tm.time()
         while True:
             job_status, _, tmeas, setpoint = kiln_cmd.status()
-            if job_status == 'RUN':
-                time_now = round((tm.time() - start_time))
-                json_data = json.dumps({'time_now': time_now, 'tmeas': tmeas, 'setpoint': setpoint})
-                yield f"data:{json_data}\n\n"
-                tm.sleep(5)
+            time_now = round((tm.time() - start_time))
+            json_data = json.dumps({'time_now': time_now, 'tmeas': tmeas, 'setpoint': setpoint})
+            yield f"data:{json_data}\n\n"
+            tm.sleep(5)
+            if job_status not in ['RUN', 'PAUSE']:
+                break
 
     response = Response(stream_with_context(_generate_chart_data()), mimetype="text/event-stream")
     response.headers["Cache-Control"] = "no-cache"
     response.headers["X-Accel-Buffering"] = "no"
     return response
 
-
+@app.route('/job/<int:job_id>/chart-data', methods=['GET', 'POST'])
+@login_required
+def get_chart_data(job_id):
+    ''' Rather than running continuously as above, web page invokes at intervals '''
+    job = model.Job.query.filter_by(id=job_id).first()
+    job_record = model.JobRecord.query.filter_by(job_id = job_id).last()
+    run_number = job_record.run_number
+    recs = model.JobRecord.filter_by(job_id = job_id, run_number = run_number)
+    json_data = json.dumps([{'time_now': rec.realtime,
+                             'tmeas': rec.tmeas,
+                             'setpoint': rec.setpoint} for rec in recs])
+    response = Response(stream_with_context(json_data), mimetype="text/event-stream")
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["X-Accel-Buffering"] = "no"
+    return response
 
 @app.route('/job/pause')
 @login_required
