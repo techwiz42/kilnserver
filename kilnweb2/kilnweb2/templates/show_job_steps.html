@@ -108,6 +108,7 @@
         </div>  <!-- end scrolling window -->
     </div> <!-- end jumbotron -->
     <div class=row>&nbsp;</div>
+    <!-- start temperature graph display -->
     {% if run_state != 'IDLE' %}
         <div class=jumbotron id="graph_display" name="graph display"> <!-- graph display jumbotron -->
             <div style="height: 100%; width: 100%;">
@@ -193,7 +194,7 @@
 	</script>	
 
 
-    {% endif %}
+	{% endif %} <!-- end temperature graph -->
       </div> <!-- end jumbotron offset -->
       </div> <!-- end vertical-center -->
     </form>
