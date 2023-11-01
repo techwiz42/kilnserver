@@ -95,9 +95,9 @@ Ensure that the kiln is clear of flammable materials!
         	source.onmessage = function (event) {
             		const data = JSON.parse(event.data);
             		config.data.labels.push(data.time_now);
-            		config.data.datasets[0].data.push(data.tmeas);
+           		config.data.datasets[0].data.push(data.tmeas);
 			config.data.datasets[1].data.push(data.setpoint);
-            		lineChart.update();
+        		lineChart.update();
         	}
     	});
 	</script>

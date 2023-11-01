@@ -400,14 +400,18 @@ def chart_data():
     kiln_cmd = kiln_command.KilnCommand()
     def _generate_chart_data():
         start_time = tm.time()
-        while True:
+        tm.sleep(5)
+        job_status, _, tmeas, setpoint = kiln_cmd.status()
+        while job_status != 'IDLE':
             job_status, _, tmeas, setpoint = kiln_cmd.status()
             time_now = round((tm.time() - start_time))
-            json_data = json.dumps({'time_now': time_now, 'tmeas': tmeas, 'setpoint': setpoint})
+            json_data = json.dumps({'time_now': time_now,
+                                    'tmeas': tmeas,
+                                    'setpoint': setpoint})
             yield f"data:{json_data}\n\n"
             tm.sleep(5)
-            if job_status not in ['RUN', 'PAUSE']:
-                break
+            job_status, _, tmeas, setpoint = kiln_cmd.status()
+
 
     response = Response(stream_with_context(_generate_chart_data()), mimetype="text/event-stream")
     response.headers["Cache-Control"] = "no-cache"
