@@ -382,7 +382,7 @@ def start_job(job_id):
 def _job_record_thread(job_id, kiln_cmd, run_number):
     job_status, _, tmeas, setpoint = kiln_cmd.status()
     def run():
-        while job_status == "RUN":
+        while job_status in ["RUN", 'PAUSE']:
             with app.app_context():
                 job_record = JobRecord(job_id=job_id, 
                                    realtime=tm.time(), 
@@ -400,7 +400,7 @@ def chart_data():
     kiln_cmd = kiln_command.KilnCommand()
     def _generate_chart_data():
         start_time = tm.time()
-        tm.sleep(5)
+        tm.sleep(1)
         job_status, _, tmeas, setpoint = kiln_cmd.status()
         while job_status != 'IDLE':
             job_status, _, tmeas, setpoint = kiln_cmd.status()
