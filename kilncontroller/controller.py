@@ -200,6 +200,7 @@ class KilnController:
                 self.logger.debug(f"Run state is {self.run_state}")
                 tmeas = self.to_F(self.read_temp())   # degrees F
                 setpoint, threshold = self.set_point()  # degrees F
+                setpoint = round(setpoint, 2)
                 if self.run_state == PAUSE:
                     self.kiln_off()
                     self.logger.debug("Pausing job")
@@ -385,7 +386,7 @@ class KilnCommandProcessor:
                 if job_id is not None and job_id != '-1':
                     state = self.kiln_controller.run_state
                     tmeas = self.kiln_controller.read_temp()
-                    setpoint = self.kiln_controller.set_point()[0]
+                    setpoint = round(self.kiln_controller.set_point()[0], 2)
                 else:
                     self.kiln_controller.run_state = state
             response = json.dumps({'response': 'status', 

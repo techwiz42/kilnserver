@@ -257,11 +257,10 @@ def update_job_steps(job_id):
     ''' update changes to job steps '''
     job = model.Job.query.filter_by(id=job_id).first()
     if not job.user_id == current_user.id:
-        flash("Accessing someone else's job is strictly not allowed.")
-        flash("This infraction has been logged.")
+        flash("Accessing someone else's job is strictly not allowed.", category='danger')
+        flash("This infraction has been logged.", category='danger')
         return  redirect(url_for('show_jobs'))
     _update_steps(job)
-    flash("Job %s updated" % job.name)
     return redirect(url_for('show_job_steps', job_id=job.id))
 
 def _update_steps(job):
@@ -289,11 +288,18 @@ def _update_steps(job):
         rate = int(request.form["rate"])
         dwell = int(request.form["dwell"])
         threshold = int(request.form["threshold"])
+        if target is None or rate is None or dwell is None or threshold is None:
+            flash("Enter a non-zero value for all fields.", category='danger')
+            redirect(url_for('show_job_steps', job_id = job.id))
+        if target >= threshold:
+            flash("Threshold temperature must be greater than target temp.", category='danger')
+            redirect(url_for('show_job_steps', job_id = job.id))
         step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
         app.db.session.add(step_record)
         app.db.session.commit()
+        flash("Job %s updated" % job.name, category='success')
     except ValueError:
-        flash("All input values must be integers")
+        flash("All input values must be positive integers", category='danger')
 
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
 @login_required
@@ -380,9 +386,12 @@ def start_job(job_id):
     return render_template('start_job.html', job=job, started=started)
 
 def _job_record_thread(job_id, kiln_cmd, run_number):
+    tm.sleep(1)
     job_status, _, tmeas, setpoint = kiln_cmd.status()
+    print(f"****** job_status {job_status} before run")
     def run():
         while job_status in ["RUN", 'PAUSE']:
+            print(f"thread running, status {job_status}")
             with app.app_context():
                 job_record = JobRecord(job_id=job_id, 
                                    realtime=tm.time(), 
@@ -391,6 +400,7 @@ def _job_record_thread(job_id, kiln_cmd, run_number):
                                    run_number=run_number)
                 app.db.session.add(job_record)
                 app.db.session.commit()
+                print("job_record committed")
                 tm.sleep(5)
                 job_status, _, tmeas, setpoint = kiln_cmd.status()
 
@@ -399,8 +409,8 @@ def _job_record_thread(job_id, kiln_cmd, run_number):
 def chart_data():
     kiln_cmd = kiln_command.KilnCommand()
     def _generate_chart_data():
-        start_time = tm.time()
         tm.sleep(1)
+        start_time = tm.time()
         job_status, _, tmeas, setpoint = kiln_cmd.status()
         while job_status != 'IDLE':
             job_status, _, tmeas, setpoint = kiln_cmd.status()

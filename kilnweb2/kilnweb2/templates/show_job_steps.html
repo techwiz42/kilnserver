@@ -1,7 +1,13 @@
 {% extends "bootstrap/base.html" %}
 {% block head %}
   {{ super() }}
- 
+  <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+	<!--suppress jsunresolvedlibraryurls -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
+
+
     <script type="text/javascript">
       function change_units(selector) {
         data = selector.value;
@@ -18,7 +24,8 @@
       }
 
     </script>
-
+{% endblock %}
+{% block body %}
 <div class="container">
   <div class="h1" align="center"><a href="{{ url_for('show_jobs') }}">KilnWeb</a></div>
   <hr/>
@@ -38,7 +45,7 @@
   <div class=metanav>
   </div>
   {% for message in get_flashed_messages() %}
-    <div class=flash>{{ message }}</div>
+    <div class='flash alert alert-danger'>{{ message }}</div>
   {% endfor %}
   <div class="h2">Job: {{ job.name }} Run State: {{ run_state }}</div>
   <div class="textarea">{{ job.comment }}</div>
@@ -74,7 +81,7 @@
 	<p>
         <div class="row">
           <div class="col-md-2"><b>Target</b></div>
-          <div class="col-md-3"><b>Rate</b></div>
+          <div class="col-md-2"><b>Rate</b></div>
           <div class="col-md-2"><b>Dwell</b></div>
           <div class="col-md-2"><b>Threshold</b></div>
           <div class="col-md-2"><b>Actions</b></div>
@@ -84,27 +91,30 @@
         <div class="row">
           <div class="form-group">
             <input type="hidden" name="id" value="{{ step.id }}"/>
-            <div class="col-md-2"><input type="number" id='target' size="6" name="target[{{ step.id }}]" style="text-align:right;" value="{{ step.target }}" readonly/>&nbsp;&deg;&nbsp;</div>
-            <div class="col-md-3"><input type="number" id='rate' size="6" name="rate[{{ step.id }}]" style="text-align:right;" value="{{ step.rate }}" readonly/>&nbsp;&deg;/hour</div>
-            <div class="col-md-2"><input type="number" id='dwell' size="6" name="dwell[{{ step.id }}]" style="text-align:right;" value="{{ step.dwell }}" readonly/>&nbsp;min</div>
-            <div class="col-md-2"><input type="number"  id='threshold' size="6" name="threshold[{{ step.id }}]" style="text-align:right;" value="{{ step.threshold }}" readonly/>&nbsp;&deg;</div>
-            <div class="col-md-2">
+            <div class="col-md-2"><input type="number" id='target' size="6" name="target[{{ step.id }}]" style="text-align:right;" value="{{ step.target }}" />&nbsp;&deg;&nbsp;</div>
+            <div class="col-md-2"><input type="number" id='rate' size="6" name="rate[{{ step.id }}]" style="text-align:right;" value="{{ step.rate }}" />&nbsp;&deg;/hr</div>
+            <div class="col-md-2"><input type="number" id='dwell' size="6" name="dwell[{{ step.id }}]" style="text-align:right;" value="{{ step.dwell }}" />&nbsp;min</div>
+            <div class="col-md-2"><input type="number"  id='threshold' size="6" name="threshold[{{ step.id }}]" style="text-align:right;" value="{{ step.threshold }}" />&nbsp;&deg;</div>
+            <div class="col-md-1">
               <a title="Delete Step" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}">
 	        <i class="glyphicon glyphicon-remove" style="color:red"></i>
 	      </a>
-            </div>
-          </div>
+	    </div>
+	    <div class="col-md-1">
+		    <input title="Edit Step" type="submit" value="Edit Step"/>
+	    </div> <!-- end edit btn -->
+	  </div> <!-- end form-group -->
         </div> <!-- end row -->
         {% endfor %}
+	<p/>
         <div class="row">
           <div class="form-group">
-            <div class="col-md-2"><input type="number" id="target" size="6" name="target" style="text-align:right;" value="" required/>&nbsp;&deg;</div>	  
-            <div class="col-md-3"><input type="number" id="rate" size="6" name="rate" min=1 style="text-align:right;" value="" required/>&nbsp;&deg;/hour</div>
-	    <div class="col-md-2"><input type="number" id="dwell" size="6" name="dwell" style="text-align:right;" value="" required/>&nbsp;min</div>
-	    <div class="col-md-2"><input type="number" id="threshold" size="6" name="threshold" style="text-align:right;" value="" required/>&nbsp;&deg;</div>
-	    <div class="col-md-2"><input type="submit" value="Add Step"/></div>
-	  </div>
-	</div>
+            <div class="col-md-2"><input type="number" id="target" size="6" name="target" style="text-align:right;" value="" />&nbsp;&deg;</div>	  
+            <div class="col-md-2"><input type="number" id="rate" size="6" name="rate" min=1 style="text-align:right;" value="" />&nbsp;&deg;/hr</div>
+	    <div class="col-md-2"><input type="number" id="dwell" size="6" name="dwell" style="text-align:right;" value="" />&nbsp;min</div>
+	    <div class="col-md-2"><input type="number" id="threshold" size="6" name="threshold" style="text-align:right;" value="" />&nbsp;&deg;</div>
+	    <div class="col-md-1"><input type="submit" value="Add Step"/></div>
+       	</div> <!-- end row -->
         </div>  <!-- end scrolling window -->
     </div> <!-- end jumbotron -->
     <div class=row>&nbsp;</div>
@@ -116,9 +126,6 @@
             </div>
 	</div> <!-- end graph display jumbotron -->
 	<!--suppress jsunresolvedlibraryurls -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
 
 	<script>
     	$(document).ready(function () {
