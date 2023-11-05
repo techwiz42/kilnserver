@@ -265,41 +265,43 @@ def update_job_steps(job_id):
 
 def _update_steps(job):
     ''' the internals for update_job_steps '''
-    for step_id in request.form.getlist('id'):
-        #update existing steps
-        target = int(request.form["target[%s]" % step_id])
-        rate = int(request.form["rate[%s]" % step_id])
-        dwell = int(request.form["dwell[%s]" % step_id])
-        threshold = int(request.form["threshold[%s]" % step_id])
-        step_record = model.JobStep.query.filter_by(job_id=job.id, id=int(step_id)).first()
-        if step_record is None:
-            step_record = model.JobStep(job=job, target=target,
-                    rate=rate, dwell=dwell, threshold=threshold)
-        else: 
-            step_record.target = target
-            step_record.rate = rate
-            step_record.dwell = dwell
-            step_record.threshold = threshold
-        app.db.session.add(step_record)
-        app.db.session.commit()
-    #Add a new step
     try:
+        for step_id in request.form.getlist('id'):
+            target = int(request.form["target[%s]" % step_id])
+            rate = int(request.form["rate[%s]" % step_id])
+            dwell = int(request.form["dwell[%s]" % step_id])
+            threshold = int(request.form["threshold[%s]" % step_id])
+            if threshold <= target:
+                flash("Threshold must be greater than target", category='danger')
+                redirect(url_for('show_job_steps', job_id = job.id))
+            else:
+                step_record = model.JobStep.query.filter_by(job_id=job.id, id=int(step_id)).first()
+                if step_record is not None:
+                    #Update an existing step
+                    step_record.target = target
+                    step_record.rate = rate
+                    step_record.dwell = dwell
+                    step_record.threshold = threshold
+                    app.db.session.add(step_record)
+                    app.db.session.commit()
+    except (TypeError, ValueError):
+        flash("All values must be positive integers", category="danger")
+    try:
+        #Add a new step
         target = int(request.form["target"])
         rate = int(request.form["rate"])
         dwell = int(request.form["dwell"])
         threshold = int(request.form["threshold"])
-        if target is None or rate is None or dwell is None or threshold is None:
-            flash("Enter a non-zero value for all fields.", category='danger')
-            redirect(url_for('show_job_steps', job_id = job.id))
         if target >= threshold:
             flash("Threshold temperature must be greater than target temp.", category='danger')
-            redirect(url_for('show_job_steps', job_id = job.id))
-        step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
-        app.db.session.add(step_record)
-        app.db.session.commit()
-        flash("Job %s updated" % job.name, category='success')
-    except ValueError:
-        flash("All input values must be positive integers", category='danger')
+        else:
+            step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
+            app.db.session.add(step_record)
+            app.db.session.commit()
+    except (TypeError, ValueError):
+        #Catch silently
+        pass
+    redirect(url_for('show_job_steps', job_id = job.id))
 
 @app.route('/job/<int:job_id>/steps/add', methods=['GET'])
 @login_required
