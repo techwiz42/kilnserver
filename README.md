@@ -7,10 +7,10 @@ detailed here. Contact Dr. Carr directly for details at roger.carr1@gmail.com
 
 The project consists of a kiln controller running on a single-board computer connected to a temperature sensor located within a kiln.
 The kilncontroller process runs continuously, listening for commands via a unix socket connected to a Flask web-based user interface.
-Users create and run jobs annealing jobs using the Flask web application.
+Users create and jobs to control the kiln using the Flask web application.
 
-* Kilncontroller runs on the Raspberry Pi. It talks to the thermocouple and listens on a Unix socket for commands from kilnweb2.
-* Kilnweb2 is a Flask application that provides a web-based UI that allows take user commands and transmit them to kilncontroller.
+* Kilncontroller runs as a service on the Raspberry Pi. It talks to the thermocouple and listens on a Unix socket for commands from kilnweb2.
+* Kilnweb2 is a Flask application running as a service and served by the NGINX web server. It provides a web-based UI that allows take user commands and transmit them to kilncontroller.
 
 **Distribution and Setup**
 
@@ -48,7 +48,7 @@ Install virtualenvwrapper on your device if it is not already installed and crea
 Create a virtual environment and activate it. Next run setup.py:
 
 ~~~
-<top-level kilnserver directory>$ python setup.py install
+<_top-level kilnserver directory_>$ python setup.py install
 ~~~
 
 This will download the necessary python packages into the virtual environment.
