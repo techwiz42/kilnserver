@@ -105,11 +105,8 @@ def show_jobs():
     if form.validate_on_submit():
         name = form.name.data
         comment = form.comment.data
-        interval = form.interval.data
-        erange = form.erange.data
-        drange = form.drange.data
-        job = Job(name=name, comment=comment, user_id=current_user.id, 
-                    interval=interval, erange=erange, drange=drange,
+        job = Job(name=name, comment=comment, user_id=current_user.id,
+                    interval=5, erange=5, drange=5,
                     created=datetime.now(), modified=datetime.now())
         app.db.session.add(job)
         app.db.session.commit()
@@ -266,6 +263,12 @@ def update_job_steps(job_id):
 def _update_steps(job):
     ''' the internals for update_job_steps '''
     try:
+        job.interval = int(request.form["interval"])
+        job.erange = int(request.form["erange"])
+        job.drange = int(request.form["drange"])
+        app.db.session.add(job)
+        app.db.session.commit()
+        print(f"form interval {request.form['interval']}")
         for step_id in request.form.getlist('id'):
             target = int(request.form["target[%s]" % step_id])
             rate = int(request.form["rate[%s]" % step_id])

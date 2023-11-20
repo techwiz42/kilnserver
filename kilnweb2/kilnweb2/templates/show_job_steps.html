@@ -63,28 +63,31 @@
           </div>
         </div>
         <p>
+	<div class="form-group">
 	   <div class="row">
-		<div class="col-md-3"><b>Interval</b>&nbsp;
+		   <input type="hidden" name="values" value="{{ job }}">
+		   <div class="col-md-3"><b>Interval</b>&nbsp;
 		    <input type="text" id="interval" size="6" name="interval"
-			style="text-align:right" value="{{ job.interval }}" readonly/>&nbsp;Sec
+			style="text-align:right" value="{{ job.interval }}" />&nbsp;Sec
 		</div>
 		<div class="col-md-3"><b>ERange</b>&nbsp;
 		    <input type="text" id="erange" size="6" name="erange"
-			style="text-align:right" value="{{ job.erange }}" readonly/>&nbsp;&deg;
+			style="text-align:right" value="{{ job.erange }}" />&nbsp;&deg;
 		</div>
 		<div class="col-md-3"><b>DRange</b>&nbsp;
-		    <input type="text" id="drange" size="6" name="dramge"
-			style="text-align:right" value="{{ job.drange }}" readonly/>&nbsp;&deg;
+		    <input type="text" id="drange" size="6" name="drange"
+			style="text-align:right" value="{{ job.drange }}" />&nbsp;&deg;
 		</div>
-	   </div>
+	   </div> <!-- end row -->
+	</div> <!-- end form-group -->
 	</p>
 	<p>
         <div class="row">
           <div class="col-md-2"><b>Target</b></div>
           <div class="col-md-2"><b>Rate</b></div>
           <div class="col-md-2"><b>Dwell</b></div>
-          <div class="col-md-2"><b>Threshold</b></div>
-          <div class="col-md-2"><b>Actions</b></div>
+          <div class="col-md-2"><b>Temp Limit</b></div>
+          <div class="col-md-2"><b>Delete Step</b></div>
         </div>
         <div  style="overflow-y: scroll; height:200px; overflow-x:hidden">
         {% for step in job_steps %}
@@ -100,12 +103,15 @@
 	        <i class="glyphicon glyphicon-remove" style="color:red"></i>
 	      </a>
 	    </div>
-	    <div class="col-md-1">
-		    <input title="Save" type="submit" value="Save"/>
-	    </div> <!-- end save btn -->
 	  </div> <!-- end form-group -->
         </div> <!-- end row -->
         {% endfor %}
+	<p/>
+	<div class="row">
+	    <div align="center">	
+		<input title="Update Values" type="submit" value="Update Values" />
+	    </div>
+	</div>
 	<p/>
         <div class="row">
           <div class="form-group">

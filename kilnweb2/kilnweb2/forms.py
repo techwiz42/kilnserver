@@ -51,9 +51,6 @@ class ShowUserForm(FlaskForm):
 class NewJobForm(FlaskForm):
     ''' Form for entering a new job '''
     name = StringField("Job Name", validators=[DataRequired()])
-    interval = IntegerField("Interval", validators=[DataRequired(), NumberRange(min=1, max=60)])
-    erange = IntegerField("ERange", validators=[DataRequired(), NumberRange(min=1, max=15)])
-    drange = IntegerField("DRange", validators=[DataRequired(), NumberRange(min=1, max=15)])
     comment = TextAreaField('Comment')
     submit = SubmitField("Add Job")
 
