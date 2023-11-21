@@ -111,6 +111,7 @@ def show_jobs():
         app.db.session.add(job)
         app.db.session.commit()
         flash("added job %r" % (name))
+        return redirect(url_for('show_job_steps', job_id = job.id))
     kiln_cmd = kiln_command.KilnCommand()
     running_job_info = None
     running_job_id = None
@@ -208,15 +209,6 @@ def parse_job(job_data):
         'threshold': int(job_fields[4]),
         })
     return steps
-
-def add_job(name, interval, erange, drange, comment):
-    ''' adds a job to the Job table in the db '''
-    job = model.Job(name = name, comment=comment, user_id = current_user.id,
-            interval=interval, erange=erange, drange=drange,
-            created = datetime.now(), modified = datetime.now())
-    flash("adding a job")
-    app.db.session.add(job)
-    app.db.session.commit()
 
 @app.route('/job/<int:job_id>/steps')
 @login_required
@@ -366,6 +358,7 @@ def delete_job(job_id):
         app.db.session.delete(job)
         app.db.session.commit()
         deleted = True
+        return redirect(url_for('show_jobs'))
     return render_template('delete_job.html', job=job, deleted=deleted)
 
 @app.route('/job/<int:job_id>/start', methods=['GET', 'POST'])

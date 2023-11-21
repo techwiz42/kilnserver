@@ -1,15 +1,23 @@
 {% extends "bootstrap/base.html" %}
+{% block head %}
+    {{ super() }}
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style>
+	a {font-size: large; text-decoration: none }
+    </style>
+{% endblock %}
 {% block body %}
   <div class="container">
       <h2><a href="{{ url_for('show_jobs') }}">KilnWeb Users</a></h2>
       <div align="right">
         {% if current_user.is_anonymous %}
-          <a href="{{ url_for('login') }}">Login</a>
-          <a href="{{ url_for('register') }}">Register</a>
-        {% else %}
-          {{ current_user.username }}
-          <a href="{{ url_for('show_jobs') }}">Show Jobs</a>
-          {% if current_user.is_admin %}
+	  <a href="{{ url_for('login') }}">Login</a> <a href="{{
+		   url_for('register') }}">Register</a> {% else %} <big>{{
+					  current_user.username }}</big> <a
+					  href="{{ url_for('show_jobs')
+						}}">Show Jobs</a> {% if
+						   current_user.is_admin %}
             <a href="{{ url_for('show_users') }}">Show Users</a>
           {% endif %}
           <a href="{{ url_for('logout') }}">Logout</a>
