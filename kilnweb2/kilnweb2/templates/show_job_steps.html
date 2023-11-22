@@ -34,13 +34,14 @@
   <hr/>
   <div align="right">
     {% if current_user.is_anonymous %}
-      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('login') }}">Login</a>&nbsp;
       <a href="{{ url_for('register') }}">Register</a>
     {% else %}
-    <big>{{ current_user.username }}</big>
-      <a href="{{ url_for('show_jobs') }}">Show Jobs</a>
+    <big>{{ current_user.username }}</big>&nbsp;
+      <a href="{{ url_for('start_job', job_id = job.id) }}">Start Job</a>&nbsp;
+      <a href="{{ url_for('show_jobs') }}">Show Jobs</a>&nbsp;
       {% if current_user.is_admin %}
-        <a href="{{ url_for('show_users') }}">Show Users</a>
+        <a href="{{ url_for('show_users') }}">Show Users</a>&nbsp;
       {% endif %}
       <a href="{{ url_for('logout') }}">Logout</a>
     {% endif %}
