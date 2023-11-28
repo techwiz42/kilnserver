@@ -171,7 +171,6 @@ class KilnController:
         #erange = 5  # default error range +/- 5
         #drange = 5 #default delta range
         lasterr = 0
-
         hhhh = 1.00   # these heating values will have to be adjusted, or not
         hhh = 0.75
         hh = 0.50
@@ -186,6 +185,9 @@ class KilnController:
         timedata = [self.runtime]
         duration = self.duration()
         try:
+            n = 0
+            tot_err = 0
+            sum_of_err_minus_mean_sq = 0
             while (self.runtime - self.pausetime) < duration:
             # Check run_state:
                 if self.run_state in [RUN, PAUSE]:
@@ -216,7 +218,6 @@ class KilnController:
                 pct_compliant = tmeas/setpoint * 100
                 self.logger.debug("measured temp %.2f setpoint %.2f compliant %.2f pct complete %.2f" % (tmeas, setpoint, pct_compliant, pct_complete))
                 lasterr = e
-
                 tempdata.append(tmeas)   #record data for plotting later
                 setdata.append(setpoint)
                 timedata.append(self.runtime)
@@ -255,34 +256,30 @@ class KilnController:
                 if (d >= self.drange/2) & (d <= self.drange): 
                     domd = [0,0,0,-2*d/self.drange +2,2*d/self.drange -1]
       
-                # FIXME - what is this about?
-                #if (dome[0] <0) or (domd[-1] <0):
-                #    self.logger.debug(f" dome={dome}, domd={domd}, erange={erange}, drange={drange}")
-
                 #Apply all 25 rules using minimum criterion
-                for i in range(0,5):     #range end condition is < end, not = end.
-                    for j in range(0,5):
+                for i in range(5):     #range end condition is < end, not = end.
+                    for j in range(5):
                         m[i,j] = min(dome[i],domd[j])  # should be zero except in  four cases
                 #self.logger.debug(m)
-
                 #defuzzify using an RMS calculation.  There are four values of heating,
                 #hhhh,hhh, hh,h, and one value of cooling z = 0.  There are 10 rules
                 #that have non-zero heating values, but all 25 must be evaluated in denominator.                                     
-                num = hhhh*math.sqrt(m[0,0]**2) + hhh*math.sqrt(m[0,1]**2 +m[1,0]**2) +\
+                num = hhhh*math.sqrt(m[0,0]**2) +\
+                    hhh*math.sqrt(m[0,1]**2 +m[1,0]**2) +\
                     hh*math.sqrt(m[0,2]**2 + m[2,0]**2 + m[1,1]**2) + \
                     h*math.sqrt(m[0,3]**2 + m[3,0]**2 + m[1,2]**2 + m[2,1]**2)
       
                 densq = 0
-                for i in range(0,4):    #the sum of all squares, unweighted
-                    for j in range(0,4):
+                #NOTE - why range 0-4?
+                for i in range(5):    #the sum of all squares, unweighted
+                    for j in range(5):
                         densq = densq + m[i,j]**2
                 den = math.sqrt(densq)
 
                 if den != 0:
                     result = num/den   # should be between 0 and 1
-                if den == 0:
+                else:
                     result = 0
-                if den == 0:
                     self.logger.debug("denominator = 0")
                 #self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
                 if self.run_state != PAUSE:
@@ -302,8 +299,6 @@ class KilnController:
             self.logger.debug("Exiting RUN loop")
             #end of while loop
         finally:
-            #self.stop()
-            #self.job_id = None
             pass
 
 
