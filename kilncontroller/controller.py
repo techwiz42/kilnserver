@@ -167,9 +167,6 @@ class KilnController:
         self.start = time.time()
         m = empty((5,5),dtype=float)*0    # degree of membership matrix
 
-        #interval = 5  #interval between updates, seconds
-        #erange = 5  # default error range +/- 5
-        #drange = 5 #default delta range
         lasterr = 0
         hhhh = 1.00   # these heating values will have to be adjusted, or not
         hhh = 0.75
@@ -180,9 +177,6 @@ class KilnController:
         # Data collection for graphing
         self.runtime = 0   # seconds
         self.pausetime = 0   # seconds
-        tempdata = [self.read_temp()]
-        setdata = [self.set_point()]
-        timedata = [self.runtime]
         duration = self.duration()
         try:
             n = 0
@@ -191,10 +185,6 @@ class KilnController:
             while (self.runtime - self.pausetime) < duration:
             # Check run_state:
                 if self.run_state in [RUN, PAUSE]:
-
-                    #self.pausetime += interval
-                    #self.logger.debug(f"pause calculation: {self.runtime - self.pausetime} < {duration}")
-                    #time.sleep(interval)
                     pass
                 if self.run_state == STOP:
                     break
@@ -218,9 +208,6 @@ class KilnController:
                 pct_compliant = tmeas/setpoint * 100
                 self.logger.debug("measured temp %.2f setpoint %.2f compliant %.2f pct complete %.2f" % (tmeas, setpoint, pct_compliant, pct_complete))
                 lasterr = e
-                tempdata.append(tmeas)   #record data for plotting later
-                setdata.append(setpoint)
-                timedata.append(self.runtime)
 
                 # find degree of membership in the 5 membership functions for e and d
                 # make sure universe of discourse is large enough by increasing its size if e
@@ -234,8 +221,6 @@ class KilnController:
                     self.drange = d  #same for d
                 if d < -self.drange:
                     self.drange = -d
-
-                #print"erange = ", erange, "   drange = ", drange
 
                 #generate 5 entry degree of membership lists for each of 4 regions, for e and d
                 if (e >= -self.erange) & (e < -self.erange/2):
@@ -281,7 +266,6 @@ class KilnController:
                 else:
                     result = 0
                     self.logger.debug("denominator = 0")
-                #self.logger.debug(" num = %.5f,den = %.5f, output = %.5f" %(num, den, result))
                 if self.run_state != PAUSE:
                     self.kiln_on()
                     time.sleep(proportion*self.interval*result)   # wait for a number of seconds

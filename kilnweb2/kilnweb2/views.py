@@ -255,12 +255,11 @@ def update_job_steps(job_id):
 def _update_steps(job):
     ''' the internals for update_job_steps '''
     try:
-        job.interval = int(request.form["interval"])
+        job.interval = float(request.form["interval"])
         job.erange = int(request.form["erange"])
         job.drange = int(request.form["drange"])
         app.db.session.add(job)
         app.db.session.commit()
-        print(f"form interval {request.form['interval']}")
         for step_id in request.form.getlist('id'):
             target = int(request.form["target[%s]" % step_id])
             rate = int(request.form["rate[%s]" % step_id])
@@ -279,6 +278,7 @@ def _update_steps(job):
                     step_record.threshold = threshold
                     app.db.session.add(step_record)
                     app.db.session.commit()
+        flash("Values have been updated")
     except (TypeError, ValueError):
         flash("All values must be positive integers", category="danger")
     try:
@@ -293,6 +293,7 @@ def _update_steps(job):
             step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
             app.db.session.add(step_record)
             app.db.session.commit()
+            flash("Step has been added.")
     except (TypeError, ValueError):
         #Catch silently
         pass
