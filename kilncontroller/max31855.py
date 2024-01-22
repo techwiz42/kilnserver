@@ -1,5 +1,8 @@
 #!/usr/bin/python
 ''' Python driver for MAX38166 thermcouple '''
+import time
+import random
+
 try:
     import RPi.GPIO as GPIO
 except ImportError:
@@ -45,9 +48,25 @@ class MAX31855():
         GPIO.output(self.cs_pin, GPIO.HIGH)
 
     def get(self):
-        '''Reads SPI bus and returns current value of thermocouple.'''
-        self.read()
-        self.checkErrors()
+        '''Reads SPI bus and returns current value of thermocouple.
+            in case of error, reads three times, waiting a random interval 
+            between reads. If error occurs after third read, raises error'''
+        read_error = None
+        count = 0
+        while True:
+            self.read()
+            read_error = self.checkErrors()
+            count += 1
+            if read_error is not None and count <= 3:
+                continue
+            elif read_error and count <= 3:
+                time.sleep(random.randint(1000)/1000)
+                continue
+            elif read_error:
+                raise read_error
+            else:
+                break
+
         return getattr(self, "to_" + self.units)(self.data_to_tc_temperature())
 
     def get_rj(self):
@@ -82,14 +101,16 @@ class MAX31855():
         shortToVCC = (data_32 & 4) != 0         # SCV bit, D2
         if anyErrors:
             if noConnection:
-                raise MAX31855Error("No Connection")
+                return MAX31855Error("No Connection")
             if shortToGround:
-                raise MAX31855Error("Thermocouple short to ground")
+                return MAX31855Error("Thermocouple short to ground")
             if shortToVCC:
-                raise MAX31855Error("Thermocouple short to VCC")
+                return MAX31855Error("Thermocouple short to VCC")
             # Perhaps another SPI device is trying to send data?
             # Did you remember to initialize all other SPI devices?
-            raise MAX31855Error("Unknown Error")
+            return MAX31855Error("Unknown Error")
+        else:
+            return None
 
     def data_to_tc_temperature(self, data_32 = None):
         '''Takes an integer and returns a thermocouple temperature in celsius.'''
