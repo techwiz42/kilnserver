@@ -83,7 +83,7 @@ class KilnController:
     def read_temp(self):
         thermocouple = mx.MAX31855(CS, CLK, DO, 'f', board=GPIO.BOARD)
         temp = thermocouple.get()
-        self.logger.debug(f"temp: {temp}")
+        #self.logger.debug(f"temp: {temp}")
         return float(temp)
 
     # returns seconds
@@ -174,10 +174,10 @@ class KilnController:
         # Create Antecedent/Consequent objects representing the error, its rate of change, and second derivative of error
         #FIXME - play with antiecedent range values - could be params from UI
         universe = np.linspace(-5,0,5)
-        alternate_universe = np.linspace(-1,0,1)
+        alternate_universe = np.linspace(-5,0,5)
         error = ctrl.Antecedent(universe, 'error')
         delta = ctrl.Antecedent(alternate_universe, 'delta')
-        output = ctrl.Consequent(np.arange(0, 101, 1), 'output')
+        output = ctrl.Consequent(np.arange(0, 55, 1), 'output')
         
         names = ['nb', 'ns', 'ze', 'ps', 'pb']
 
@@ -254,6 +254,8 @@ class KilnController:
                 controller.input['delta'] = e1
                 controller.compute()
                 proportion = controller.output['output']/100
+                self.logger.debug("proportion %.2f" % proportion)
+                self.logger.debug("temp = %.3f, setpoint = %.3f, e = %.3f, d = %.3f" % (tmeas, setpoint, e, e1))
                 e1 = e
 
                 # find degree of membership in the 5 membership functions for e and d

@@ -1,7 +1,6 @@
 #!/usr/bin/python
 ''' Python driver for MAX38166 thermcouple '''
-import time
-import random
+import logging
 
 try:
     import RPi.GPIO as GPIO
@@ -36,6 +35,7 @@ class MAX31855():
         self.units = units
         self.data = None
         self.board = board
+        self.logger = logging.getLogger("Controller")
 
         # Initialize needed GPIO
         GPIO.setmode(self.board)
@@ -46,27 +46,14 @@ class MAX31855():
 
         # Pull chip select high to make chip inactive
         GPIO.output(self.cs_pin, GPIO.HIGH)
-
+        
     def get(self):
-        '''Reads SPI bus and returns current value of thermocouple.
-            in case of error, reads three times, waiting a random interval 
-            between reads. If error occurs after third read, raises error'''
-        read_error = None
-        count = 0
-        while True:
+        '''Reads SPI bus and returns current value of thermocouple.'''
+        try:
             self.read()
-            read_error = self.checkErrors()
-            count += 1
-            if read_error is not None and count <= 3:
-                continue
-            elif read_error and count <= 3:
-                time.sleep(random.randint(1000)/1000)
-                continue
-            elif read_error:
-                raise read_error
-            else:
-                break
-
+            self.checkErrors()
+        except MAX31855Error:
+            logger.debug("CAUGHT ERROR!")
         return getattr(self, "to_" + self.units)(self.data_to_tc_temperature())
 
     def get_rj(self):
@@ -101,16 +88,18 @@ class MAX31855():
         shortToVCC = (data_32 & 4) != 0         # SCV bit, D2
         if anyErrors:
             if noConnection:
-                return MAX31855Error("No Connection")
+                self.logger.debug("No connection to thermocouple")        
+                raise MAX31855Error("No Connection")
             if shortToGround:
-                return MAX31855Error("Thermocouple short to ground")
+                self.logger.debug("Thermocouple short to ground")
+                raise MAX31855Error("Thermocouple short to ground")
             if shortToVCC:
-                return MAX31855Error("Thermocouple short to VCC")
+                self.logger.debug("Thermocouple short to VCC")
+                raise MAX31855Error("Thermocouple short to VCC")
             # Perhaps another SPI device is trying to send data?
             # Did you remember to initialize all other SPI devices?
-            return MAX31855Error("Unknown Error")
-        else:
-            return None
+            self.logger.debug("Thermocouple unknown error")
+            raise MAX31855Error("Unknown Error")
 
     def data_to_tc_temperature(self, data_32 = None):
         '''Takes an integer and returns a thermocouple temperature in celsius.'''

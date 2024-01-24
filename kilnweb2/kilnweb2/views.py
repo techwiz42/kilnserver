@@ -402,6 +402,8 @@ def _job_record_thread(job_id, kiln_cmd, run_number):
                 print("job_record committed")
                 tm.sleep(5)
                 job_status, _, tmeas, setpoint = kiln_cmd.status()
+        print(f"Job status = {job_status}")
+        flash(f"Job complete")
 
 @app.route('/chart-data')
 @login_required
