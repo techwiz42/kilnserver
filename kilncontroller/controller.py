@@ -13,6 +13,11 @@ from numpy import empty
 import constants
 import max31855 as mx
 
+HEAT4 = 1.0
+HEAT3 = 0.75
+HEAT2 = 0.5
+HEAT1 = 0.25
+
 try:
     from  RPi import GPIO
     print("Raspberry Pi GPIO found")
@@ -42,8 +47,8 @@ class KilnController:
         self.conn = conn
         self.run_state = None
         self.start = None
-        self.runtime = None
-        self.pausetime = None
+        self.runtime = 0
+        self.pausetime = 0
         self.job_id = None  # this is the ID of the running job, if any.
         self.build_temp_table()
         #set the GPIO pin to LOW
@@ -52,6 +57,7 @@ class KilnController:
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         GPIO.setup(self.gpio_pin, GPIO.OUT, initial=GPIO.LOW) #HIGH=on, LOW=off
+        self.m_deg = None
         self.kiln_off()
 
     def __del__(self):
@@ -149,8 +155,8 @@ class KilnController:
                 interval = self.temp_table[minute+1] - self.temp_table[minute]
                 rate = seconds / 60 - minute
                 retval = (
-                        self.temp_table[minute] +\
-                        interval * rate, self.threshold_table[minute]
+                        self.temp_table[minute] + interval * rate,
+                        self.threshold_table[minute]
                     )
             else:
                 retval = (self.temp_table[minute], self.temp_table[minute])
@@ -189,11 +195,10 @@ class KilnController:
         self.run_state = constants.RUN
         self.start = time.time()
         self.logger.debug("denominator = 0")
-        m_deg = empty((5,5),dtype=float)*0    # degree of membership matrix
+        # initialize degree of membership matrix
+        self.m_deg = empty((5,5),dtype=float)*0
 
         # Data collection for graphing
-        self.runtime = 0   # seconds
-        self.pausetime = 0   # seconds
         duration = self.duration()
         lasterr = 0
         try:
@@ -230,8 +235,8 @@ class KilnController:
                 # its size if e or d lie outside the default range.
 
                 self.adjust_universe(error, delta)
-                dome, domd = self.generate_degree_of_membership(error, delta)
-                result = self.defuzify(m_deg, dome, domd)
+                self.generate_degree_of_membership(error, delta)
+                result = self.defuzify()
                 self.toggle_kiln(result)
 
             self.kiln_off()
@@ -278,9 +283,12 @@ class KilnController:
             domd = [0,0,-2*delta/self.drange +1,2*delta/self.drange ,0]
         elif (delta >= self.drange/2) & (delta <= self.drange):
             domd = [0,0,0,-2*delta/self.drange +2,2*delta/self.drange -1]
-        return dome, domd
+        #Apply all 25 rules using minimum criterion
+        for i in range(5):     #range end condition is < end, not = end.
+            for j in range(5):
+                self.m_deg[i,j] = min(dome[i],domd[j])
 
-    def defuzify(self, m_deg, dome, domd):
+    def defuzify(self):
         """ 
             defuzzify using an RMS calculation.
             There are four values of heating,
@@ -289,24 +297,17 @@ class KilnController:
             There are 10 rules that have non-zero heating values,
             but all 25 must be evaluated in denominator.
         """
-        hhhh_heat = 1.00   # these heating values will have to be adjusted, or not
-        hhh_heat = 0.75
-        hh_heat = 0.50
-        h_heat = 0.25
-        num = hhhh_heat*math.sqrt(m_deg[0,0]**2) +\
-            hhh_heat*math.sqrt(m_deg[0,1]**2 +m_deg[1,0]**2) +\
-            hh_heat*math.sqrt(m_deg[0,2]**2 + m_deg[2,0]**2 + m_deg[1,1]**2) + \
-            h_heat*math.sqrt(m_deg[0,3]**2 + m_deg[3,0]**2 + m_deg[1,2]**2 + m_deg[2,1]**2)
+        num = HEAT4*math.sqrt(self.m_deg[0,0]**2) +\
+            HEAT3*math.sqrt(self.m_deg[0,1]**2 +self.m_deg[1,0]**2) +\
+            HEAT2*math.sqrt(self.m_deg[0,2]**2 + self.m_deg[2,0]**2 + self.m_deg[1,1]**2) + \
+            HEAT1*math.sqrt(self.m_deg[0,3]**2 + self.m_deg[3,0]**2 + self.m_deg[1,2]**2 + \
+                self.m_deg[2,1]**2)
 
         densq = 0
         for i in range(5):    #the sum of all squares, unweighted
             for j in range(5):
-                densq = densq + m_deg[i,j]**2
+                densq = densq + self.m_deg[i,j]**2
         den = math.sqrt(densq)
-        #Apply all 25 rules using minimum criterion
-        for i in range(5):     #range end condition is < end, not = end.
-            for j in range(5):
-                m_deg[i,j] = min(dome[i],domd[j]) # zero except in 4 cases
 
         if den != 0:
             result = num/den   # should be between 0 and 1
@@ -327,7 +328,6 @@ class KilnController:
             if remainder > 0:
                 time.sleep(remainder)
                 self.runtime = time.time() - self.start
-                self.pausetime += self.interval
             else:
                 time.sleep(self.interval)
                 self.pausetime += self.interval
@@ -460,7 +460,10 @@ def main():
     """
     assert os.geteuid() == 0, "ERROR: Must run as root"
     kcp = KilnCommandProcessor()
-    kcp.run()
+    try:
+        kcp.run()
+    except KeyboardInterrupt:
+        print("bye")
 
 def _to_bytes(strng):
     return bytes(strng, 'utf-8')
