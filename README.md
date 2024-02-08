@@ -81,7 +81,7 @@ flask db upgrade
 The kilncontroller must be run with root privileges. Change directory to the top level directory, be sure to activate the virtual environment and start the kilncontroller:
 
 ~~~
->sudo python ./main.py
+>sudo python ./controller.py
 ~~~
 Note that it may be necessary to modify the permissions on numpy to enable the root user to execute it.
 
