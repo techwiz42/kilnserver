@@ -9,14 +9,11 @@ import math
 import threading
 import json
 import logging
+from dataclasses import dataclass
 from numpy import empty
 import constants
 import max31855 as mx
 
-HEAT4 = 1.0
-HEAT3 = 0.75
-HEAT2 = 0.5
-HEAT1 = 0.25
 
 try:
     from  RPi import GPIO
@@ -27,37 +24,48 @@ except ImportError:
     import stubGPIO as GPIO
     print("Raspberry Pi GPIO NOT FOUND - running stub")
 
+HEAT4 = 1.0
+HEAT3 = 0.75
+HEAT2 = 0.5
+HEAT1 = 0.25
+
+@dataclass
 class KilnController:
     """
         This is the class that encapsulates the
         command structure for the kiln controller
     """
-    def __init__(self, segments, units, interval, erange, drange, conn):
-        self.segments = segments
-        self.units = units
-        self.interval = interval
-        self.erange = erange
-        self.drange = drange
+    segments: list
+    units: str
+    interval: int
+    erange: int
+    drange: int
+    conn: socket
+
+    run_state = None
+    start = None
+    runtime = 0
+    pausetime = 0
+    job_id = None  # this is the ID of the running job, if any.
+    gpio_pin = None
+    m_deg = None
+
+    def __post_init__(self):
         self.logger = logging.getLogger("Controller")
         handler = logging.FileHandler('/var/log/kilnweb/kilncontroller.log')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.logger.setLevel(logging.DEBUG)
-        self.conn = conn
-        self.run_state = None
-        self.start = None
-        self.runtime = 0
-        self.pausetime = 0
-        self.job_id = None  # this is the ID of the running job, if any.
-        self.build_temp_table()
+
         #set the GPIO pin to LOW
         self.gpio_pin = constants.GPIO_PIN # pin number, not channel number
-        GPIO.cleanup() # just in case
+        #GPIO.cleanup() # just in case
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         GPIO.setup(self.gpio_pin, GPIO.OUT, initial=GPIO.LOW) #HIGH=on, LOW=off
-        self.m_deg = None
+
+        self.build_temp_table()
         self.kiln_off()
 
     def __del__(self):
@@ -332,6 +340,7 @@ class KilnController:
                 time.sleep(self.interval)
                 self.pausetime += self.interval
 
+@dataclass
 class KilnCommandProcessor:
     """
         The KilnCommandProcessor class listens to the unix socket
@@ -340,7 +349,7 @@ class KilnCommandProcessor:
         method and dispatches commands to the process_commands method.
     """
 
-    def __init__(self):
+    def __post_init__(self):
         """
             sets up logging, creates the unix socket and sets the
             run_server instance variable to True
@@ -418,7 +427,7 @@ class KilnCommandProcessor:
         elif command_data['command'].upper() == constants.STOP:
             if self.kiln_controller is not None:
                 self.kiln_controller.stop()
-                self.kiln_controller_thread.join(30) # 30 sec timeout
+                self.kiln_controller_thread.join()
                 self.kiln_controller.job_id = None
                 self.kiln_controller.logger.handlers = []
                 self.kiln_controller = None
