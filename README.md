@@ -106,6 +106,11 @@ requests to to the socket. It also listens on the socket for responses from the 
 See also this tutorial for comprehensive Flask how-to:
 https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins
 
+**Alternate controller**
+A version of the controller called controller_fz.py was written partly by ChatGPT. It is based on a package called scikit-fuzzy. In its 
+current form, it does not control kiln temperature as percisely as the hand-written code. To use it, edit the kilncontroller.service file
+and replace "controller.py" with "controller_fz.py" then restart the kilncontroller service.
+
 **The Project**
 
 Run under python3 in a virtual environment.
