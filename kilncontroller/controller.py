@@ -100,7 +100,7 @@ class KilnController:
                 board=GPIO.BOARD
             )
         temp = thermocouple.get()
-        self.logger.debug("temp: %2f", temp)
+        self.logger.debug(f"temp: {temp: _.2f}")
         return float(temp)
 
     # returns seconds
@@ -114,7 +114,7 @@ class KilnController:
             #dwell is minutes, multiply by 60 to get seconds
             seconds += (ramp + (segment['dwell'] * 60))
             prev_target = segment['target']
-        self.logger.debug("JOB DURATION = %s", seconds)
+        self.logger.debug(f"JOB DURATION: {seconds}")
         return round(seconds)
 
     # NOTE that the internal units of the temp table are F.
@@ -123,7 +123,7 @@ class KilnController:
     def build_temp_table(self):
         """ Builds the table of setpoint tempertures """
         start_temp = self.to_f(self.read_temp())
-        self.logger.debug("start_temp is %s degrees F", repr(start_temp))
+        self.logger.debug(f"start_temp is {start_temp: _.2f} degrees F")
         previous_target = start_temp
         self.temp_table = [start_temp]
         self.threshold_table = []
@@ -217,7 +217,7 @@ class KilnController:
                 if self.run_state == constants.STOP:
                     break
                 # find error and delta-error
-                self.logger.debug("Run state is %s", self.run_state)
+                self.logger.debug(f"Run state is {self.run_state}")
                 tmeas = self.to_f(self.read_temp())   # degrees F
                 setpoint, threshold = self.set_point()  # degrees F
                 setpoint = round(setpoint, 2)
@@ -231,9 +231,9 @@ class KilnController:
                     break
                 error = tmeas - setpoint # present error degrees F
                 delta = error - lasterr
-                log_msg = f"e = {error}, d = {delta}"
+                log_msg = f"e = {error: _.2f}, d = {delta: _.2f}"
                 self.logger.debug(log_msg)
-                log_msg = f"meas temp = {tmeas}, set pt = {setpoint}"
+                log_msg = f"meas temp = {tmeas: _.2f}, set pt = {setpoint: _.2f}"
                 self.logger.debug(log_msg)
                 lasterr = error
 
@@ -388,7 +388,7 @@ class KilnCommandProcessor:
         while self.run_server:
             try:
                 conn, client_addr = self.sock.accept()
-                self.logger.debug("connection from %s", str(client_addr))
+                self.logger.debug(f"connection from {client_addr}")
                 while self.run_server:
                     data = conn.recv(1024)
                     if data:

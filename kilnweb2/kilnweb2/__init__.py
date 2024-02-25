@@ -1,4 +1,5 @@
 #! /Users/bartelby/.virtualenvs/kilnsvr/bin/python
+""" (c) 2023, 2024 Control Physics - all rights reserved """
 import os, logging
 from flask import Flask
 from flask_login import LoginManager
@@ -44,4 +45,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-''' (c) 2023 Control Physics - all rights reserved '''

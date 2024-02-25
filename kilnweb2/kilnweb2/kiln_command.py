@@ -1,3 +1,4 @@
+""" (c) 2023, 2024 Control Physics. All rights reserved. """
 import socket, json
 #from kilncontroller import constants
 from kilnweb2 import model
@@ -57,4 +58,3 @@ class KilnCommand:
 def _to_bytes(s):
   return bytes(s, encoding='utf-8')
 
-''' (c) 2023 Control Physics - all rights reserved '''

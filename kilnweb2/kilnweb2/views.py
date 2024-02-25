@@ -48,8 +48,12 @@ def register():
     if form.validate_on_submit():
         #Default value for is_admin and is_auth are False 
         #Admin authorizes users access to kilns on page ******* TBD ********
-        user = User(username=form.username.data, email_address=form.email.data,
-                full_name=form.full_name.data, phone_number=form.phone_number.data)
+        user = User(
+                username=form.username.data,
+                email_address=form.email.data,
+                full_name=form.full_name.data,
+                phone_number=form.phone_number.data
+            )
         user.set_password(form.password.data)
         user.is_auth = 0
         user.is_admin = 0
@@ -269,7 +273,10 @@ def _update_steps(job):
                 flash("Threshold must be greater than target", category='danger')
                 redirect(url_for('show_job_steps', job_id = job.id))
             else:
-                step_record = model.JobStep.query.filter_by(job_id=job.id, id=int(step_id)).first()
+                step_record = model.JobStep.query.filter_by(
+                        job_id=job.id,
+                        id=int(step_id)
+                    ).first()
                 if step_record is not None:
                     #Update an existing step
                     step_record.target = target
@@ -290,7 +297,13 @@ def _update_steps(job):
         if target >= threshold:
             flash("Threshold temperature must be greater than target temp.", category='danger')
         else:
-            step_record = model.JobStep(job=job, target=target, rate=rate, dwell=dwell, threshold=threshold)
+            step_record = model.JobStep(
+                    job=job,
+                    target=target,
+                    rate=rate,
+                    dwell=dwell,
+                    threshold=threshold
+                )
             app.db.session.add(step_record)
             app.db.session.commit()
             flash("Step has been added.")
@@ -378,7 +391,10 @@ def start_job(job_id):
         key_store.value += 1
         kiln_cmd.start(job_id)
         app.db.session.commit()
-        job_record_thread = threading.Thread(target=_job_record_thread, args=(job.id, kiln_cmd, key_store.value))
+        job_record_thread = threading.Thread(
+                target=_job_record_thread,
+                args=(job.id, kiln_cmd, key_store.value)
+            )
         job_record_thread.start()
         flash(f"Job {job.name} started.")
         started = True
@@ -386,7 +402,7 @@ def start_job(job_id):
 
 def _job_record_thread(job_id, kiln_cmd, run_number):
     tm.sleep(1)
-    job_status, _, tmeas, setpoint = kiln_cmd.status()
+    job_status, _, _, _ = kiln_cmd.status()
     print(f"****** job_status {job_status} before run")
     def run():
         while job_status in ["RUN", 'PAUSE']:

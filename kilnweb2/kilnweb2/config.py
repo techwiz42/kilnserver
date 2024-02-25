@@ -1,3 +1,4 @@
+''' (c) 2023, 2024 Control Physics - all rights reserved '''
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -8,4 +9,3 @@ class Config(object):
   SQLALCHEMY_TRACK_MODIFICATIONS = False
   EXPLAIN_TEMPLATE_LOADING = False
 
-''' (c) 2023 Roger Carr - all rights reserved '''
