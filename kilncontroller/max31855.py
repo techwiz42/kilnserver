@@ -53,7 +53,7 @@ class MAX31855():
             self.read()
             self.checkErrors()
         except MAX31855Error:
-            logger.debug("CAUGHT ERROR!")
+            self.logger.debug("CAUGHT ERROR!")
         return getattr(self, "to_" + self.units)(self.data_to_tc_temperature())
 
     def get_rj(self):

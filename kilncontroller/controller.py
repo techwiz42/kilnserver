@@ -260,12 +260,16 @@ class KilnController:
             also adjust universe of discourse if delta is outside of range
         """
         if error > self.erange:
+            self.logger.debug(f"error {error: _.2f} is above {self.error: _.2f}")
             self.erange = error  # adjust universe of discourse if error > range
         elif error < -self.erange:
+            self.logger.debug(f"error {error: _.2f} is below {self.error: _.2f}")
             self.erange = -error
         if delta > self.drange:
+            self.logger.debug(f"delta {delta: _.2f} is above {self.drange: _.f}")
             self.drange = delta  #same for d
         elif delta < -self.drange:
+            self.logger.debug(f"delta {delta: _.2f} is below {self.drange: _.2f}")
             self.drange = -delta
 
     def generate_degree_of_membership(self, error, delta):
@@ -322,6 +326,7 @@ class KilnController:
         else:
             result = 0
             self.logger.debug("denominator = 0")
+        self.logger.debug(f"defuzzify fraction: {result: _.2f}")
         return result
 
     def toggle_kiln(self, result):
