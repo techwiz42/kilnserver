@@ -100,14 +100,14 @@ class KilnController:
                 board=GPIO.BOARD
             )
         temp = thermocouple.get()
-        self.logger.debug(f"temp: {temp: _.2f}")
+        #self.logger.debug(f"temp: {temp: _.2f}")
         return float(temp)
 
     # returns seconds
     def duration(self):
         '''Returns the duration of the job in seconds'''
         seconds = 0
-        prev_target = self.to_f(read_temp())
+        prev_target = self.to_f(self.read_temp())
         for segment in self.segments:
             #target is degrees, rate is degrees per hour so multiply 3600 to get seconds
             ramp = (abs(segment['target'] - prev_target) / segment['rate']) * 3600
@@ -218,7 +218,7 @@ class KilnController:
                     break
                 # find error and delta-error
                 self.logger.debug(f"Run state is {self.run_state}")
-                tmeas = self.to_f(read_temp())   # degrees F
+                tmeas = self.to_f(self.read_temp())   # degrees F
                 setpoint, threshold = self.set_point()  # degrees F
                 setpoint = round(setpoint, 2)
                 if self.run_state == constants.PAUSE:

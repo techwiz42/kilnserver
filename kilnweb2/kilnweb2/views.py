@@ -395,8 +395,9 @@ def start_job(job_id):
                 target=_job_record_thread,
                 args=(job.id, kiln_cmd, key_store.value)
             )
-        job_record_thread.start()
-        flash(f"Job {job.name} started.")
+        #job_record_thread.start()
+        #job_record_thread.join()
+        #flash(f"Job {job.name} started.")
         started = True
     return render_template('start_job.html', job=job, started=started)
 
