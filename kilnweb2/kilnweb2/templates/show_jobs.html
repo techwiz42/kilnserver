@@ -2,7 +2,7 @@
 {% block body %}
 <div class=ex1>
   <p>
-  Kiln state: {{ run_state }}
+  Kiln state: {{ run_state }} Temp: {{ tmeas }}
   <br/>
   {% if running_job == None %}
   No job running.

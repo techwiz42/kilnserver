@@ -107,7 +107,7 @@ class KilnController:
     def duration(self):
         '''Returns the duration of the job in seconds'''
         seconds = 0
-        prev_target = self.to_f(self.read_temp())
+        prev_target = self.to_f(read_temp())
         for segment in self.segments:
             #target is degrees, rate is degrees per hour so multiply 3600 to get seconds
             ramp = (abs(segment['target'] - prev_target) / segment['rate']) * 3600
@@ -122,7 +122,7 @@ class KilnController:
     # Are converted to F here. the to_f() function does the conversion
     def build_temp_table(self):
         """ Builds the table of setpoint tempertures """
-        start_temp = self.to_f(self.read_temp())
+        start_temp = self.to_f(read_temp())
         self.logger.debug(f"start_temp is {start_temp: _.2f} degrees F")
         previous_target = start_temp
         self.temp_table = [start_temp]
@@ -218,7 +218,7 @@ class KilnController:
                     break
                 # find error and delta-error
                 self.logger.debug(f"Run state is {self.run_state}")
-                tmeas = self.to_f(self.read_temp())   # degrees F
+                tmeas = self.to_f(read_temp())   # degrees F
                 setpoint, threshold = self.set_point()  # degrees F
                 setpoint = round(setpoint, 2)
                 if self.run_state == constants.PAUSE:
@@ -344,6 +344,18 @@ class KilnController:
             else:
                 time.sleep(self.interval)
                 self.pausetime += self.interval
+def read_temp():
+    """ Reads the temperature from the MAX31855 thermocouple """
+    thermocouple = mx.MAX31855(
+            constants.CS,
+            constants.CLK,
+            constants.DO,
+            'f',
+            board=GPIO.BOARD
+        )
+    temp = thermocouple.get()
+    return float(temp)
+
 
 @dataclass
 class KilnCommandProcessor:
@@ -445,7 +457,7 @@ class KilnCommandProcessor:
         elif command_data['command'].upper() == constants.STATUS:
             state = 'IDLE'
             job_id = str(-1)
-            tmeas = "N/A"
+            tmeas = read_temp()
             setpoint = "N/A"
             if self.kiln_controller is not None:
                 job_id = self.kiln_controller.job_id

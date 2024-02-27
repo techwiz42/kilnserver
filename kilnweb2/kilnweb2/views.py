@@ -120,7 +120,7 @@ def show_jobs():
     running_job_info = None
     running_job_id = None
     running_job_user = None
-    run_state, running_job_id, _, _ = kiln_cmd.status()
+    run_state, running_job_id, tmeas, _ = kiln_cmd.status()
     if running_job_id is not None:
         running_job_info = model.Job.query.filter_by(id=running_job_id).first()
         if running_job_info is not None:
@@ -129,7 +129,7 @@ def show_jobs():
     jobs = model.Job.query.filter_by(user_id=current_user.id)
     form.name.data = ""
     form.comment.data = ""
-    return render_template('show_jobs.html', jobs=jobs, run_state=run_state,
+    return render_template('show_jobs.html', jobs=jobs, run_state=run_state, tmeas=tmeas,
                             running_job_id=running_job_id, running_job=running_job_info,
                             running_job_user=running_job_user, form=form)
 
