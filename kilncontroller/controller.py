@@ -211,6 +211,8 @@ class KilnController:
         lasterr = 0
         n = 0
         sum_of_sq_error = 0
+        last_rms_error = 999
+        total_error = 0
         try:
             while (self.runtime - self.pausetime) < duration:
             # Check run_state:
@@ -233,9 +235,21 @@ class KilnController:
                     break
                 error = tmeas - setpoint # present error degrees F
                 delta = error - lasterr
+                total_error += error
                 n += 1
                 sum_of_sq_error += (error * error) 
                 rms_error = math.sqrt(sum_of_sq_error / n)
+                """ Every twelfth ticks, examine whether it's necessary to adjust self.interval """
+                if n \ 12 == 0:
+                    if rms_error > last_rms_error and total_error > 0:
+                        # increase interval
+                        self.interval += 2
+                        self.logger.debug(f"increase interval to {self.interval}")
+                    elif rms_error > last_rms_error and self.interval >= 2:
+                        # decrease interval by 1
+                        self.interval -= 1  
+                        self.logger.debug(f"decrease interval to {self.interval}")
+                    last_rms_error = rms_error
                 log_msg = f"e = {error: _.2f}, d = {delta: _.2f}, rms_error = {rms_error: _.2f}"
                 self.logger.debug(log_msg)
                 log_msg = f"meas temp = {tmeas: _.2f}, set pt = {setpoint: _.2f}"
