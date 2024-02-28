@@ -209,6 +209,8 @@ class KilnController:
         # Data collection for graphing
         duration = self.duration()
         lasterr = 0
+        n = 0
+        sum_of_sq_error = 0
         try:
             while (self.runtime - self.pausetime) < duration:
             # Check run_state:
@@ -231,7 +233,10 @@ class KilnController:
                     break
                 error = tmeas - setpoint # present error degrees F
                 delta = error - lasterr
-                log_msg = f"e = {error: _.2f}, d = {delta: _.2f}"
+                n += 1
+                sum_of_sq_error += (error * error) 
+                rms_error = math.sqrt(sum_of_sq_error / n)
+                log_msg = f"e = {error: _.2f}, d = {delta: _.2f}, rms_error = {rms_error: _.2f}"
                 self.logger.debug(log_msg)
                 log_msg = f"meas temp = {tmeas: _.2f}, set pt = {setpoint: _.2f}"
                 self.logger.debug(log_msg)
@@ -260,13 +265,13 @@ class KilnController:
             also adjust universe of discourse if delta is outside of range
         """
         if error > self.erange:
-            self.logger.debug(f"error {error: _.2f} is above {self.error: _.2f}")
+            self.logger.debug(f"error {error: _.2f} is above {self.erange: _.2f}")
             self.erange = error  # adjust universe of discourse if error > range
         elif error < -self.erange:
-            self.logger.debug(f"error {error: _.2f} is below {self.error: _.2f}")
+            self.logger.debug(f"error {error: _.2f} is below {self.erange: _.2f}")
             self.erange = -error
         if delta > self.drange:
-            self.logger.debug(f"delta {delta: _.2f} is above {self.drange: _.f}")
+            self.logger.debug(f"delta {delta: _.2f} is above {self.drange: _.2f}")
             self.drange = delta  #same for d
         elif delta < -self.drange:
             self.logger.debug(f"delta {delta: _.2f} is below {self.drange: _.2f}")
