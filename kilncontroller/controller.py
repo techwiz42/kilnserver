@@ -239,18 +239,22 @@ class KilnController:
                 n += 1
                 sum_of_sq_error += (error * error) 
                 rms_error = math.sqrt(sum_of_sq_error / n)
+                rms_error_pct = rms_error / setpoint
                 """ Every twelfth ticks, examine whether it's necessary to adjust self.interval """
-                if n \ 12 == 0:
-                    if rms_error > last_rms_error and total_error > 0:
-                        # increase interval
-                        self.interval += 2
-                        self.logger.debug(f"increase interval to {self.interval}")
-                    elif rms_error > last_rms_error and self.interval >= 2:
-                        # decrease interval by 1
-                        self.interval -= 1  
-                        self.logger.debug(f"decrease interval to {self.interval}")
-                    last_rms_error = rms_error
-                log_msg = f"e = {error: _.2f}, d = {delta: _.2f}, rms_error = {rms_error: _.2f}"
+                
+                if n % 12 == 0:
+                    if rms_error_pct > last_rms_error and total_error < 0:
+                        # increase interval by 20%
+                        self.interval *= 1.2
+                        self.logger.debug(f"increase interval to {self.interval: _.2f}")
+                    elif rms_error_pct > last_rms_error and self.interval >= 2:
+                        # decrease interval by 20%
+                        self.interval *= 0.8  
+                        self.logger.debug(f"decrease interval to {self.interval: _.2f}")
+                    last_rms_error = rms_error_pct
+
+                log_msg = f"e = {error: _.2f}, d = {delta: _.2f}, rms_error = {rms_error: _.2f}, \
+                        rms_error_pct = {rms_error_pct: _.4f}"
                 self.logger.debug(log_msg)
                 log_msg = f"meas temp = {tmeas: _.2f}, set pt = {setpoint: _.2f}"
                 self.logger.debug(log_msg)
