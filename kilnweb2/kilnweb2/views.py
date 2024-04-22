@@ -12,6 +12,7 @@ from kilnweb2 import app
 from kilnweb2 import kiln_command, model, email
 from kilnweb2.model import User, Job, JobRecord, KeyStore
 from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm, PasswordResetForm
+from kilnweb2 import Config
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
@@ -110,7 +111,7 @@ def show_jobs():
         name = form.name.data
         comment = form.comment.data
         job = Job(name=name, comment=comment, user_id=current_user.id,
-                    interval=5, erange=5, drange=5,
+                    interval=Config.INTERVAL, erange=Config.ERANGE, drange=Config.DRANGE,
                     created=datetime.now(), modified=datetime.now())
         app.db.session.add(job)
         app.db.session.commit()
@@ -210,7 +211,6 @@ def parse_job(job_data):
         'target': int(job_fields[1]),
         'rate': int(job_fields[2]),
         'dwell': int(job_fields[3]),
-        'threshold': int(job_fields[4]),
         })
     return steps
 
@@ -259,18 +259,18 @@ def update_job_steps(job_id):
 def _update_steps(job):
     ''' the internals for update_job_steps '''
     try:
-        job.interval = float(request.form["interval"])
-        job.erange = int(request.form["erange"])
-        job.drange = int(request.form["drange"])
+        job.interval = float(Config.INTERVAL)
+        job.erange = int(Config.ERANGE)
+        job.drange = int(Config.DRANGE)
         app.db.session.add(job)
         app.db.session.commit()
         for step_id in request.form.getlist('id'):
             target = int(request.form["target[%s]" % step_id])
             rate = int(request.form["rate[%s]" % step_id])
             dwell = int(request.form["dwell[%s]" % step_id])
-            threshold = int(request.form["threshold[%s]" % step_id])
+            threshold = Config.TEMP_LIMIT
             if threshold <= target:
-                flash("Threshold must be greater than target", category='danger')
+                flash(f"Temp limit for this kiln is {contants.TEMP_LIMIT} degrees", category='danger')
                 redirect(url_for('show_job_steps', job_id = job.id))
             else:
                 step_record = model.JobStep.query.filter_by(
@@ -293,9 +293,9 @@ def _update_steps(job):
         target = int(request.form["target"])
         rate = int(request.form["rate"])
         dwell = int(request.form["dwell"])
-        threshold = int(request.form["threshold"])
+        threshold = Config.TEMP_LIMIT
         if target >= threshold:
-            flash("Threshold temperature must be greater than target temp.", category='danger')
+            flash(f"Temperature limit for ths kiln is {threshold}", category='danger')
         else:
             step_record = model.JobStep(
                     job=job,
@@ -339,20 +339,6 @@ def delete_job_step(job_id, step_id):
     app.db.session.delete(step)
     app.db.session.commit()
     return redirect(url_for('remove_job_step', job_id=job_id))
-
-@app.route('/job/<int:job_id>/change_units/<units>', methods=['POST'])
-@login_required
-def change_units(job_id, units):
-    ''' change temperature units from F to C or vice versa '''
-    job = model.Job.query.filter_by(id=job_id).first()
-    if not job.user_id == current_user.id:
-        flash("Accessing someone else's job is strictly not allowed.")
-        flash("This infraction has been logged.")
-        return redirect(url_for('show_jobs'))
-    job.units = units
-    app.db.session.commit()
-    flash("Units successfully changed to %s" % units)
-    return redirect(url_for('show_job_steps', job_id=job_id))
 
 @app.route('/job/<int:job_id>/delete', methods=['GET', 'POST'])
 @login_required

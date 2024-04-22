@@ -9,3 +9,9 @@ class Config(object):
   SQLALCHEMY_TRACK_MODIFICATIONS = False
   EXPLAIN_TEMPLATE_LOADING = False
 
+  INTERVAL = 5 # Read and adjust temp every this many seconds.
+  UNITS="F" # "F" or "C"
+  ERANGE = 5 # Initall maximum error in degrees
+  DRANGE = 5 # Initial first derivative of error in degrees
+  TEMP_LIMIT = 1000 # Kiln will shut down if it reaches this temp.
+
