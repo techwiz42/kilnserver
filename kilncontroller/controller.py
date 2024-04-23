@@ -102,7 +102,7 @@ class KilnController:
         temp = thermocouple.get()
         #self.logger.debug(f"temp: {temp: _.2f}")
         return float(temp)
-
+ 
     # returns seconds
     def duration(self):
         '''Returns the duration of the job in seconds'''
@@ -467,7 +467,7 @@ class KilnCommandProcessor:
         elif command_data['command'].upper() == constants.STOP:
             if self.kiln_controller is not None:
                 self.kiln_controller.stop()
-                self.kiln_controller_thread.join()
+                #self.kiln_controller_thread.join()
                 self.kiln_controller.job_id = None
                 self.kiln_controller.logger.handlers = []
                 self.kiln_controller = None
@@ -501,7 +501,7 @@ class KilnCommandProcessor:
         """
         self.socket_thread = threading.Thread(target=self.socket_loop)
         self.socket_thread.start()
-        self.socket_thread.join()
+        #self.socket_thread.join()
 
 def main():
     """

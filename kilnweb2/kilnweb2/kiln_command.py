@@ -17,17 +17,19 @@ def jdefault(o):
 class KilnCommand:
   def __init__(self):
     self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    self.sock.connect(SOCK_PATH)
+    conn = self.sock.connect(SOCK_PATH)
 
   def __del__(self):
     self.sock.close()
 
   def start(self, job_id):
-    # TODO: Handle job not found condition
     job = model.Job.query.filter_by(id=int(job_id)).first()
-    command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps, 
-        'units': job.units, 'interval': job.interval, 'erange': job.erange, 'drange': job.drange}, default=jdefault)
-    self.sock.sendall(_to_bytes(command + "\n"))
+    if job is not None:
+        command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps, 
+            'units': job.units, 'interval': job.interval, 'erange': job.erange, 'drange': job.drange}, default=jdefault)
+        self.sock.sendall(_to_bytes(command + "\n"))
+    else:
+        return f"Job {job_id} does not exist"
 
   def stop(self):
     command = json.dumps({'command': 'stop'})

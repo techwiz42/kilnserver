@@ -211,6 +211,7 @@ def parse_job(job_data):
         'target': int(job_fields[1]),
         'rate': int(job_fields[2]),
         'dwell': int(job_fields[3]),
+        'threshold': int(job_fields[4]),
         })
     return steps
 
@@ -268,9 +269,9 @@ def _update_steps(job):
             target = int(request.form["target[%s]" % step_id])
             rate = int(request.form["rate[%s]" % step_id])
             dwell = int(request.form["dwell[%s]" % step_id])
-            threshold = Config.TEMP_LIMIT
+            threshold = int(request.form["threshold[%s]" % step_id])
             if threshold <= target:
-                flash(f"Temp limit for this kiln is {contants.TEMP_LIMIT} degrees", category='danger')
+                flash(f"Threshold {threshold} must be greater than target {target}", category='danger')
                 redirect(url_for('show_job_steps', job_id = job.id))
             else:
                 step_record = model.JobStep.query.filter_by(
@@ -285,7 +286,7 @@ def _update_steps(job):
                     step_record.threshold = threshold
                     app.db.session.add(step_record)
                     app.db.session.commit()
-        flash("Values have been updated")
+        flash("Values have been updated", category="message")
     except (TypeError, ValueError):
         flash("All values must be positive integers", category="danger")
     try:
@@ -293,9 +294,9 @@ def _update_steps(job):
         target = int(request.form["target"])
         rate = int(request.form["rate"])
         dwell = int(request.form["dwell"])
-        threshold = Config.TEMP_LIMIT
+        threshold = int(request.form["threshold"])
         if target >= threshold:
-            flash(f"Temperature limit for ths kiln is {threshold}", category='danger')
+            flash(f"Thresholld must be greater than target temp", category='danger')
         else:
             step_record = model.JobStep(
                     job=job,
@@ -306,7 +307,7 @@ def _update_steps(job):
                 )
             app.db.session.add(step_record)
             app.db.session.commit()
-            flash("Step has been added.")
+            flash("Step has been added.", category="message")
     except (TypeError, ValueError):
         #Catch silently
         pass
@@ -318,11 +319,11 @@ def add_job_step(job_id):
     ''' add a step to a job '''
     job = model.Job.query.filter_by(id=job_id).first()
     if not job.user_id == current_user.id:
-        flash("Accessing someone else's job is strictly not allowed.")
-        flash("This infraction has been logged.")
+        flash("Accessing someone else's job is strictly not allowed.", category="danger")
+        flash("This infraction has been logged.", category="danger")
         return  redirect(url_for('show_jobs'))
     _update_steps(job)
-    flash("Job step added.")
+    flash("Job step added.", category="message")
     return redirect(url_for('show_job_steps', job_id=job_id))
 
 @app.route('/job/<int:job_id>/steps/delete/<int:step_id>', methods=['GET'])
@@ -331,11 +332,11 @@ def delete_job_step(job_id, step_id):
     ''' delete a step from a job '''
     job = model.Job.query.filter_by(id=job_id).first()
     if not job.user_id == current_user.id:
-        flash("Accessing someone else's job is strictly not allowed.")
-        flash("This infraction has been logged.")
+        flash("Accessing someone else's job is strictly not allowed.", category="danger")
+        flash("This infraction has been logged.", category="danger")
         return  redirect(url_for('show_jobs'))
     step = model.JobStep.query.filter_by(job_id=job_id, id=step_id).first()
-    flash("Job step %d from job %s deleted." % (step_id, job.name))
+    flash("Job step %d from job %s deleted." % (step_id, job.name), category="message")
     app.db.session.delete(step)
     app.db.session.commit()
     return redirect(url_for('remove_job_step', job_id=job_id))
@@ -346,12 +347,12 @@ def delete_job(job_id):
     ''' delete a job '''
     job = model.Job.query.filter_by(id=job_id).first()
     if not job.user_id == current_user.id:
-        flash("Accessing someone else's job is strictly not allowed.")
-        flash("This infraction has been logged.")
+        flash("Accessing someone else's job is strictly not allowed.", category="danger")
+        flash("This infraction has been logged.", category="danger")
         return  redirect(url_for('show_jobs'))
     deleted = False
     if request.method == 'POST':
-        flash("Job %s deleted." % job.name)
+        flash("Job %s deleted." % job.name, category="message")
         steps = model.JobStep.query.filter_by(job=job)
         for step in steps:
             app.db.session.delete(step)
@@ -366,9 +367,12 @@ def delete_job(job_id):
 def start_job(job_id):
     ''' start a job '''
     job = model.Job.query.filter_by(id=job_id).first()
-    if not job.user_id == current_user.id:
-        flash("Accessing someone else's job is strictly not allowed.")
-        flash("This infraction has been logged.")
+    if job is None:
+        flash(f"Job {job_id} not found.", category="danger")
+        return redirect(url_for('show_jobs'))
+    elif not job.user_id == current_user.id:
+        flash("Accessing someone else's job is strictly not allowed.", category="danger")
+        flash("This infraction has been logged.", category="danger")
         return  redirect(url_for('show_jobs'))
     started = False
     if request.method == 'POST':
@@ -383,17 +387,15 @@ def start_job(job_id):
             )
         #job_record_thread.start()
         #job_record_thread.join()
-        #flash(f"Job {job.name} started.")
+        flash(f"Job {job.name} started.")
         started = True
     return render_template('start_job.html', job=job, started=started)
 
 def _job_record_thread(job_id, kiln_cmd, run_number):
     tm.sleep(1)
     job_status, _, _, _ = kiln_cmd.status()
-    print(f"****** job_status {job_status} before run")
     def run():
         while job_status in ["RUN", 'PAUSE']:
-            print(f"thread running, status {job_status}")
             with app.app_context():
                 job_record = JobRecord(job_id=job_id, 
                                    realtime=tm.time(), 
@@ -402,10 +404,8 @@ def _job_record_thread(job_id, kiln_cmd, run_number):
                                    run_number=run_number)
                 app.db.session.add(job_record)
                 app.db.session.commit()
-                print("job_record committed")
                 tm.sleep(5)
                 job_status, _, tmeas, setpoint = kiln_cmd.status()
-        print(f"Job status = {job_status}")
         flash(f"Job complete")
 
 @app.route('/chart-data')
