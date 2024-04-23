@@ -29,21 +29,21 @@
         <div class=flash>{{ message }}</div>
       {% endfor %}
       <div class="row">
-          <div class="col-md-1"><b>Username</b></div>
-          <div class="col-md-2"><b>Full Name</b></div>
-          <div class="col-md-2"><b>Email Address</b></div>
-          <div class="col-md-2"><b>Phone Number</b></div>
-          <div class="col-md-1"><b>Is Auth</b></div>
-          <div class="col-md-1"><b>Is Admin</b></div>
+          <div class="col-xs-1"><b>Username</b></div>
+          <div class="col-xs-2"><b>Full Name</b></div>
+          <div class="col-xs-2"><b>Email Address</b></div>
+          <div class="col-xs-2"><b>Phone Number</b></div>
+          <div class="col-xs-1"><b>Is Auth</b></div>
+          <div class="col-xs-1"><b>Is Admin</b></div>
       </div>
     {% for user in users %}
         <div class="row">
           <form action="{{ url_for('update_user', user_id = user.id) }}">
-              <div class="col-md-1">{{ user.username }}</div>
-              <div class="col-md-2"><input type="text" id='full_name'  name="full_name[{{ user.id }}]" value="{{ user.full_name }}"/></div>
-              <div class="col-md-2"><input type="text" id='email_address' name='email_address[{{ user.id }}]' value="{{ user.email_address }}"></div>
-              <div class="col-md-2"><input type="text" id="phone_number" name="phone_number[{{ user.id }}]" value="{{ user.phone_number }}"></div>
-              <div class="col-md-1">
+              <div class="col-xs-1" style="width:100px;">{{ user.username }}</div>
+              <div class="col-xs-2"><input type="text" id='full_name'  name="full_name[{{ user.id }}]" value="{{ user.full_name }}" style="width:150px;"/></div>
+              <div class="col-xs-2"><input type="text" id='email_address' name='email_address[{{ user.id }}]' value="{{ user.email_address }}" style="width:150px;"></div>
+              <div class="col-xs-2"><input type="text" id="phone_number" name="phone_number[{{ user.id }}]" value="{{ user.phone_number }}" style="width:150px;"></div>
+              <div class="col-xs-1" style="width:50px;">
                   <!-- FIXME - this is a bogus way to show checkbox value -->
                 {% if user.is_auth %}
                   <input type="checkbox" name="is_auth[{{ user.id }}]"  checked>
@@ -51,7 +51,7 @@
                   <input type="checkbox"  name="is_auth[{{ user.id }}]">
                 {% endif %}
               </div>
-              <div class="col-md-1">
+              <div class="col-xs-1" style="width:50px;">
                   <!-- FIXME - this is a bogus way to show checkbox value -->
                   {% if user.is_admin %}
                     <input type="checkbox" name="is_admin[{{ user.id }}]" checked>
@@ -59,8 +59,8 @@
                     <input type="checkbox" name="is_admin[{{ user.id }}]">
                   {% endif %}
               </div>
-              <div class="col-md-1"><input type="submit" value="Update"></div>
-              <div class="col-md-1"><a href="{{ url_for('delete_user', user_id = user.id) }}">Delete</a></div>
+              <div class="col-xs-1"><input type="submit" value="Update"></div>
+              <div class="col-xs-1"><a href="{{ url_for('delete_user', user_id = user.id) }}">Delete</a></div>
           </form>
     </div>
   {% endfor %}

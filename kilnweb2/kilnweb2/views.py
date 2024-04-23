@@ -286,7 +286,7 @@ def _update_steps(job):
                     step_record.threshold = threshold
                     app.db.session.add(step_record)
                     app.db.session.commit()
-        flash("Values have been updated", category="message")
+        flash("Values have been updated", category="success")
     except (TypeError, ValueError):
         flash("All values must be positive integers", category="danger")
     try:
@@ -307,7 +307,7 @@ def _update_steps(job):
                 )
             app.db.session.add(step_record)
             app.db.session.commit()
-            flash("Step has been added.", category="message")
+            flash("Step has been added.", category="success")
     except (TypeError, ValueError):
         #Catch silently
         pass
@@ -323,7 +323,7 @@ def add_job_step(job_id):
         flash("This infraction has been logged.", category="danger")
         return  redirect(url_for('show_jobs'))
     _update_steps(job)
-    flash("Job step added.", category="message")
+    flash("Job step added.", category="success")
     return redirect(url_for('show_job_steps', job_id=job_id))
 
 @app.route('/job/<int:job_id>/steps/delete/<int:step_id>', methods=['GET'])
@@ -336,7 +336,7 @@ def delete_job_step(job_id, step_id):
         flash("This infraction has been logged.", category="danger")
         return  redirect(url_for('show_jobs'))
     step = model.JobStep.query.filter_by(job_id=job_id, id=step_id).first()
-    flash("Job step %d from job %s deleted." % (step_id, job.name), category="message")
+    flash("Job step deleted.", category="success")
     app.db.session.delete(step)
     app.db.session.commit()
     return redirect(url_for('remove_job_step', job_id=job_id))
@@ -352,7 +352,7 @@ def delete_job(job_id):
         return  redirect(url_for('show_jobs'))
     deleted = False
     if request.method == 'POST':
-        flash("Job %s deleted." % job.name, category="message")
+        flash("Job %s deleted." % job.name, category="success")
         steps = model.JobStep.query.filter_by(job=job)
         for step in steps:
             app.db.session.delete(step)
