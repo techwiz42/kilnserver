@@ -220,7 +220,7 @@ def parse_job(job_data):
 def show_job_steps(job_id):
     ''' display job steps '''
     kiln_cmd = kiln_command.KilnCommand()
-    run_state, _, _, _ = kiln_cmd.status()
+    run_state, _, tmeas, _ = kiln_cmd.status()
     job = model.Job.query.filter_by(id=job_id).first()
     if not job.user_id == current_user.id:
         flash("Accessing someone else's job is strictly not allowed.")
@@ -229,7 +229,8 @@ def show_job_steps(job_id):
     job_steps = model.JobStep.query.filter_by(job_id=job_id).all()
     return render_template('show_job_steps.html', job=job,
                            job_steps=job_steps,
-                           run_state=run_state)
+                           run_state=run_state,
+                           tmeas=tmeas)
 
 @app.route('/job/<int:job_id>/remove_step')
 @login_required

@@ -52,7 +52,7 @@
   {% for message in get_flashed_messages() %}
     <div class='flash alert alert-danger'>{{ message }}</div>
   {% endfor %}
-  <div class="h2">Job: {{ job.name }} Run State: {{ run_state }}</div>
+  <div class="h2">Job: {{ job.name }} Run State: {{ run_state }} Temp: {{ tmeas }}&deg;</div>
   <div class="textarea">{{ job.comment }}</div>
     <form action="{{ url_for('update_job_steps', job_id=job.id) }}" method="post">
       <div class="vertical-center">
@@ -65,7 +65,7 @@
 	  <div class="col-xs-2"><b>Limit</b></div>
         </div>
         <div  style="overflow-y: scroll; height:200px; overflow-x:hidden">
-	 <div class="row">
+	 <div class="row" style="border-spacing:3px;">
           <div class="form-group">
             <div class="col-xs-3"><input type="number" id="target" name="target" style="width:70px;text-align:right;" value="" />&nbsp;&deg;</div>	        <div class="col-xs-3"><input type="number" id="rate" name="rate" min=1 style="width:70px;text-align:right;" value="" />&nbsp;&deg;</div>
 	    <div class="col-xs-3"><input type="number" id="dwell" name="dwell" style="width:70px;text-align:right;" value="" />&nbsp;min</div>
@@ -76,7 +76,7 @@
 	  </div> <!-- end form-group -->
        	</div> <!-- end row -->
         {% for step in job_steps %}
-        <div class="row">
+        <div class="row" style="border-spacing:0px;">
           <div class="form-group">
             <div class="col-xs-3"><input type="number" id='target' name="target[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.target }}" />&nbsp;&deg;</div>
             <div class="col-xs-3"><input type="number" id='rate' name="rate[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.rate }}" />&nbsp;&deg;/hr</div>
