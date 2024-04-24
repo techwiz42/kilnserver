@@ -67,28 +67,27 @@
         <div  style="overflow-y: scroll; height:200px; overflow-x:hidden">
 	 <div class="row">
           <div class="form-group">
-            <div class="col-xs-3"><input type="number" id="target" size="6" name="target" style="width:70px;text-align:right;" value="" />&nbsp;&deg;</div>	  
-            <div class="col-xs-3"><input type="number" id="rate" size="6" name="rate" min=1 style="width:70px;text-align:right;" value="" />&nbsp;&deg;/hr</div>
-	    <div class="col-xs-3"><input type="number" id="dwell" size="6" name="dwell" style="width:70px;text-align:right;" value="" />&nbsp;min</div>
-	    <div class="col-xs-2"><input type="number" id="threshold" size="6" name="threshold" style="width:70px;text-align:right;" value=""/>&nbsp;&deg;</div>
-	    <div class="col-xs-1"><button type="submit"/>
+            <div class="col-xs-3"><input type="number" id="target" name="target" style="width:70px;text-align:right;" value="" />&nbsp;&deg;</div>	        <div class="col-xs-3"><input type="number" id="rate" name="rate" min=1 style="width:70px;text-align:right;" value="" />&nbsp;&deg;</div>
+	    <div class="col-xs-3"><input type="number" id="dwell" name="dwell" style="width:70px;text-align:right;" value="" />&nbsp;min</div>
+	    <div class="col-xs-2"><input type="number" id="threshold" name="threshold" style="width:70px;text-align:right;" value=""/>&nbsp;&deg;</div>
+	    <div class="col-xs-1" title="Add a row"><button type="submit"/>
                 <span class="glyphicon glyphicon-plus" style="color:green"></span>
 	    </div>
+	  </div> <!-- end form-group -->
        	</div> <!-- end row -->
-	<hr>	
         {% for step in job_steps %}
         <div class="row">
           <div class="form-group">
-            <input type="hidden" name="id" value="{{ step.id }}"/>
-            <div class="col-xs-3"><input type="number" id='target' size="6" name="target[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.target }}" />&nbsp;&deg;&nbsp;</div>
-            <div class="col-xs-3"><input type="number" id='rate' size="6" name="rate[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.rate }}" />&nbsp;&deg;/hr</div>
-            <div class="col-xs-3"><input type="number" id='dwell' size="6" name="dwell[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.dwell }}" />&nbsp;min</div>
-	    <div class="col-xs-2"><input type="number" id='threshold' size="6" name="threshold[{{step.id}}]" style="width:70px;text-align:right;" value="{{step.threshold}}" />&nbsp;&deg;</div>
+            <div class="col-xs-3"><input type="number" id='target' name="target[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.target }}" />&nbsp;&deg;</div>
+            <div class="col-xs-3"><input type="number" id='rate' name="rate[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.rate }}" />&nbsp;&deg;/hr</div>
+            <div class="col-xs-3"><input type="number" id='dwell' name="dwell[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.dwell }}" />&nbsp;min</div>
+	    <div class="col-xs-2"><input type="number" id='threshold' name="threshold[{{step.id}}]" style="width:70px;text-align:right;" value="{{step.threshold}}" />&nbsp;&deg;</div>
             <div class="col-xs-1">
-              <a title="Delete" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}">
-	        <i class="glyphicon glyphicon-remove" style="color:red"></i>
+              <a title="Delete this row" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}">
+	        <i class="glyphicon glyphicon-remove" style="color:red;"></i>
 	      </a>
 	    </div>
+	    <input type="hidden" name="id" value="{{ step.id }}" />
 	  </div> <!-- end form-group -->
         </div> <!-- end row -->
         {% endfor %}
