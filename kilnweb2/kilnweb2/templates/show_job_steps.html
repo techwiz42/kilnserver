@@ -59,17 +59,18 @@
       <div class="col-md-10 col-md-offset-1"> <!-- offset jumbotron on page -->
       <div class="jumbotron" align="left">
         <div class="row">
-          <div class="col-xs-3"><b>Target</b></div>
-          <div class="col-xs-3"><b>Rate</b></div>
-          <div class="col-xs-3"><b>Dwell</b></div>
-	  <div class="col-xs-2"><b>Limit</b></div>
+          <div class="col-xs-3"><b>Target &deg;</b></div>
+          <div class="col-xs-3"><b>Rate &deg;/hr</b></div>
+          <div class="col-xs-3"><b>Dwell min</b></div>
+	  <div class="col-xs-2"><b>Limit &deg;</b></div>
         </div>
         <div  style="overflow-y: scroll; height:200px; overflow-x:hidden">
 	 <div class="row" style="border-spacing:3px;">
           <div class="form-group">
-            <div class="col-xs-3"><input type="number" id="target" name="target" style="width:70px;text-align:right;" value="" />&nbsp;&deg;</div>	        <div class="col-xs-3"><input type="number" id="rate" name="rate" min=1 style="width:70px;text-align:right;" value="" />&nbsp;&deg;</div>
-	    <div class="col-xs-3"><input type="number" id="dwell" name="dwell" style="width:70px;text-align:right;" value="" />&nbsp;min</div>
-	    <div class="col-xs-2"><input type="number" id="threshold" name="threshold" style="width:70px;text-align:right;" value=""/>&nbsp;&deg;</div>
+	    <div class="col-xs-3"><input type="number" id="target" name="target" style="width:70px;text-align:right;" value="" /></div>	        
+	    <div class="col-xs-3"><input type="number" id="rate" name="rate" min=1 style="width:70px;text-align:right;" value="" /></div>
+	    <div class="col-xs-3"><input type="number" id="dwell" name="dwell" style="width:70px;text-align:right;" value="" /></div>
+	    <div class="col-xs-2"><input type="number" id="threshold" name="threshold" style="width:70px;text-align:right;" value=""/></div>
 	    <div class="col-xs-1" title="Add a row"><button type="submit"/>
                 <span class="glyphicon glyphicon-plus" style="color:green"></span>
 	    </div>
@@ -78,10 +79,10 @@
         {% for step in job_steps %}
         <div class="row" style="border-spacing:0px;">
           <div class="form-group">
-            <div class="col-xs-3"><input type="number" id='target' name="target[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.target }}" />&nbsp;&deg;</div>
-            <div class="col-xs-3"><input type="number" id='rate' name="rate[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.rate }}" />&nbsp;&deg;/hr</div>
-            <div class="col-xs-3"><input type="number" id='dwell' name="dwell[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.dwell }}" />&nbsp;min</div>
-	    <div class="col-xs-2"><input type="number" id='threshold' name="threshold[{{step.id}}]" style="width:70px;text-align:right;" value="{{step.threshold}}" />&nbsp;&deg;</div>
+            <div class="col-xs-3"><input type="number" id='target' name="target[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.target }}" /></div>
+            <div class="col-xs-3"><input type="number" id='rate' name="rate[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.rate }}" /></div>
+            <div class="col-xs-3"><input type="number" id='dwell' name="dwell[{{ step.id }}]" style="width:70px;text-align:right;" value="{{ step.dwell }}" /></div>
+	    <div class="col-xs-2"><input type="number" id='threshold' name="threshold[{{step.id}}]" style="width:70px;text-align:right;" value="{{step.threshold}}" /></div>
             <div class="col-xs-1">
               <a title="Delete this row" href="{{ url_for('delete_job_step', job_id=job.id, step_id=step.id) }}">
 	        <i class="glyphicon glyphicon-remove" style="color:red;"></i>
