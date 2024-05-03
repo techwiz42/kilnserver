@@ -13,5 +13,4 @@ class Config(object):
   UNITS="F" # "F" or "C"
   ERANGE = 5 # Initall maximum error in degrees
   DRANGE = 5 # Initial first derivative of error in degrees
-  TEMP_LIMIT = 1000 # Kiln will shut down if it reaches this temp.
 
