@@ -239,7 +239,8 @@ class KilnController:
                 sum_of_sq_error += (error * error) 
                 rms_error = math.sqrt(sum_of_sq_error / n)
                 rms_error_pct = rms_error / setpoint
-                """ Every twelfth ticks, examine whether it's necessary to adjust self.interval """
+                
+                """ Every twelfth ticks, examine whether it's necessary to adjust self.interval -REMOVED
                 total_error += error
                 if n % 12 == 0:
                     if rms_error_pct > last_rms_error and total_error < 0:
@@ -252,9 +253,9 @@ class KilnController:
                         self.logger.debug(f"decrease interval to {self.interval: _.2f}")
                     last_rms_error = rms_error_pct
                     total_error = 0
+                """
 
-                log_msg = f"e = {error: _.2f}, d = {delta: _.2f}, rms_error = {rms_error: _.2f}, \
-                        rms_error_pct = {rms_error_pct: _.4f}"
+                log_msg = f"e = {error: _.2f}, d = {delta: _.2f}, rms_error = {rms_error: _.2f}, rms_error_pct = {rms_error_pct: _.4f}"
                 self.logger.debug(log_msg)
                 log_msg = f"meas temp = {tmeas: _.2f}, set pt = {setpoint: _.2f}"
                 self.logger.debug(log_msg)
@@ -279,7 +280,7 @@ class KilnController:
 
     def adjust_universe(self, error, delta):
         """
-            adust universe of discourse if error is outside of range
+            adjust universe of discourse if error is outside of range
             also adjust universe of discourse if delta is outside of range
         """
         if error > self.erange:
