@@ -173,8 +173,8 @@ class KilnController:
         duration = self.duration()
         # Create Antecedent/Consequent objects representing the error, its rate of change, and second derivative of error
         #FIXME - play with antiecedent range values - could be params from UI
-        universe = np.linspace(-5,0,5)
-        alternate_universe = np.linspace(-5,0,5)
+        universe = np.linspace(-5,0,21)
+        alternate_universe = np.linspace(-10,10,30)
         error = ctrl.Antecedent(universe, 'error')
         delta = ctrl.Antecedent(alternate_universe, 'delta')
         output = ctrl.Consequent(np.arange(0, 55, 1), 'output')

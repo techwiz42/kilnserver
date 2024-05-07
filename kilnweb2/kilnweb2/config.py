@@ -12,5 +12,5 @@ class Config(object):
   INTERVAL = 5 # Read and adjust temp every this many seconds.
   UNITS="F" # "F" or "C"
   ERANGE = 5 # Initall maximum error in degrees
-  DRANGE = 5 # Initial first derivative of error in degrees
+  DRANGE = 2 # Initial first derivative of error in degrees
 

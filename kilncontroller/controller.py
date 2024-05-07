@@ -14,7 +14,6 @@ from numpy import empty
 import constants
 import max31855 as mx
 
-
 try:
     from  RPi import GPIO
     print("Raspberry Pi GPIO found")
@@ -24,10 +23,10 @@ except ImportError:
     import stubGPIO as GPIO
     print("Raspberry Pi GPIO NOT FOUND - running stub")
 
-HEAT4 = 1.0
-HEAT3 = 0.75
-HEAT2 = 0.5
-HEAT1 = 0.25
+HEAT4 = constants.HEAT4
+HEAT3 = constants.HEAT3
+HEAT2 = constants.HEAT2
+HEAT1 = constants.HEAT1
 
 @dataclass
 class KilnController:
@@ -233,7 +232,7 @@ class KilnController:
                     log_msg = "Threshold temperature exceeded. Kiln is OFF and run is TERMINATED"
                     self.logger.debug(log_msg)
                     break
-                error = tmeas - setpoint # present error degrees F
+                error = (tmeas - setpoint)  # present error degrees F
                 delta = error - lasterr
                 n += 1
                 sum_of_sq_error += (error * error) 
@@ -295,6 +294,11 @@ class KilnController:
         elif delta < -self.drange:
             self.logger.debug(f"delta {delta: _.2f} is below {self.drange: _.2f}")
             self.drange = -delta
+        # prevent divide by zero error
+        if self.drange == 0:
+            self.drange = 0.01
+        if self.erange == 0:
+            self.erange = 0.01
 
     def generate_degree_of_membership(self, error, delta):
         """
