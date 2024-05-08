@@ -11,8 +11,7 @@ from flask_mail import Mail, Message
 from kilnweb2 import app
 from kilnweb2 import kiln_command, model, email
 from kilnweb2.model import User, Job, JobRecord, KeyStore
-from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm, PasswordResetForm
-from kilnweb2 import Config
+from kilnweb2.forms import RegistrationForm, LoginForm, NewJobForm, ShowUserForm, PasswordResetForm, SettingsForm
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
@@ -111,7 +110,6 @@ def show_jobs():
         name = form.name.data
         comment = form.comment.data
         job = Job(name=name, comment=comment, user_id=current_user.id,
-                    interval=Config.INTERVAL, erange=Config.ERANGE, drange=Config.DRANGE,
                     created=datetime.now(), modified=datetime.now())
         app.db.session.add(job)
         app.db.session.commit()
@@ -144,6 +142,25 @@ def show_users():
     users = model.User.query.all()
     return render_template('show_users.html', users=users)
 
+@app.route('/settings', methods = ['GET', 'POST'])
+@login_required
+def settings():
+    ''' update settings '''
+    form = SettingsForm()
+    settings = model.Settings.query.filter_by(id=1).first()
+    if not settings:
+        settings = model.Settings(id=1, erange=5, drange=1, interval=5, units="F")
+    if form.validate_on_submit():
+        settings.id = 1
+        settings.erange = form.erange.data
+        settings.drange = form.drange.data
+        settings.interval = form.interval.data
+        settings.units = form.units.data
+        app.db.session.add(settings)
+        app.db.session.commit()
+        flash("Settings updated")
+        return redirect(url_for('show_jobs'))
+    return render_template('settings.html', title='settings', settings = settings, form=form)
 
 @app.route('/user', methods = ['GET', 'POST'])
 @login_required
@@ -261,9 +278,6 @@ def update_job_steps(job_id):
 def _update_steps(job):
     ''' the internals for update_job_steps '''
     try:
-        job.interval = float(Config.INTERVAL)
-        job.erange = int(Config.ERANGE)
-        job.drange = int(Config.DRANGE)
         app.db.session.add(job)
         app.db.session.commit()
         for step_id in request.form.getlist('id'):

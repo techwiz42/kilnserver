@@ -258,6 +258,8 @@ class KilnController:
                 self.logger.debug(log_msg)
                 log_msg = f"meas temp = {tmeas: _.2f}, set pt = {setpoint: _.2f}"
                 self.logger.debug(log_msg)
+                log_msg = f"self.erange = {self.erange: _.2f}, self.drange = {self.drange: _.2f}"
+                self.logger.debug(log_msg)
                 lasterr = error
 
                 # find degree of membership in the 5 membership functions

@@ -1,5 +1,6 @@
 ''' (c) 2023, 2024 Control Physics - all rights reserved '''
 import os
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
@@ -9,8 +10,4 @@ class Config(object):
   SQLALCHEMY_TRACK_MODIFICATIONS = False
   EXPLAIN_TEMPLATE_LOADING = False
 
-  INTERVAL = 5 # Read and adjust temp every this many seconds.
-  UNITS="F" # "F" or "C"
-  ERANGE = 5 # Initall maximum error in degrees
-  DRANGE = 2 # Initial first derivative of error in degrees
 

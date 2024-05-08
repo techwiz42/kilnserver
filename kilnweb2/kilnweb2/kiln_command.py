@@ -18,6 +18,11 @@ class KilnCommand:
   def __init__(self):
     self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     conn = self.sock.connect(SOCK_PATH)
+    settings = model.Settings.query.filter_by(id=1).first()
+    self.erange = settings.erange
+    self.drange = settings.drange
+    self.units = settings.units
+    self.interval = settings.interval
 
   def __del__(self):
     self.sock.close()
@@ -26,7 +31,7 @@ class KilnCommand:
     job = model.Job.query.filter_by(id=int(job_id)).first()
     if job is not None:
         command = json.dumps({'command': 'start', 'job_id': int(job_id), 'steps': job.steps, 
-            'units': job.units, 'interval': job.interval, 'erange': job.erange, 'drange': job.drange}, default=jdefault)
+            'units': self.units, 'interval': self.interval, 'erange': self.erange, 'drange': self.drange}, default=jdefault)
         self.sock.sendall(_to_bytes(command + "\n"))
     else:
         return f"Job {job_id} does not exist"

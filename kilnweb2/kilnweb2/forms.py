@@ -1,9 +1,8 @@
 ''' The user-defined forms for this Flask app '''
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, SubmitField, IntegerField
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField, IntegerField, DecimalField, SelectField
 from wtforms.validators import ValidationError, DataRequired, NumberRange, Email, EqualTo
 from kilnweb2.model import User, Job
-
 
 class LoginForm(FlaskForm):
     ''' The form that users login on '''
@@ -60,4 +59,10 @@ class NewJobForm(FlaskForm):
         if name is not None:
             raise ValidationError('Please choose a different name for your job')
 
-''' (c) Control Physics - all rights reserved '''
+class SettingsForm(FlaskForm):
+    erange = DecimalField("ERANGE", validators=[DataRequired()])
+    drange = DecimalField("DRANGE", validators=[DataRequired()])
+    interval = IntegerField("Interval", validators=[DataRequired()])
+    units = SelectField("Units", choices = [("F", "Farenheidt"), ("C", "Centigrade")])
+    submit = SubmitField("Save")
+''' (c) Control Physics 2023, 2024 - all rights reserved '''

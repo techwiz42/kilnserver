@@ -40,6 +40,14 @@ create table key_store (
 
 insert into key_store (key, value) values ('run_number', 0);
 
+drop table if exists settings;
+create table settings(
+  erange real not null,
+  drange real not null,
+  interval integer not null,
+  units text not null
+);
+
 drop table if exists users;
 create table users(
   id integer primary key autoincrement,

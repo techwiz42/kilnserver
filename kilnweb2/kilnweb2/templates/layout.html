@@ -22,7 +22,10 @@
 <div class="ex2">
 	<h1 align="center"><a href="{{ url_for('login') }}">KilnWeb</a></h1>
 
-  <div align="right">
+  <div style="inline;float:left;">
+	  <a href="{{ url_for('settings') }}">Settings</a>
+  </div>
+  <div style="inline;float:right">
     	{% if current_user.is_anonymous %}
       		<a href="{{ url_for('login') }}">Login</a>&nbsp;
       		<a href="{{ url_for('register') }}">Register</a>&nbsp;
