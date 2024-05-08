@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h2>Settings</h2>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.erange.label }}
+            {{ form.erange(size=4, value=settings.erange) }}<br>
+        </p>
+        <p>
+            {{ form.drange.label }}
+            {{ form.drange(size=4, value=settings.drange) }}<br>
+        </p>
+        <p>
+            {{ form.interval.label }}
+            {{ form.interval(size=4, value=settings.interval) }}<br>
+        </p>
+	<p>
+	    {{ form.units.label }}
+	    {{ form.units(value=settings.units) }}<br>
+	</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
