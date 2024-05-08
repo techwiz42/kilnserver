@@ -158,7 +158,7 @@ def settings():
         settings.units = form.units.data
         app.db.session.add(settings)
         app.db.session.commit()
-        flash("Settings updated")
+        flash(f"Settings updated: erange {settings.erange}, drange {settings.drange}, interval {settings.interval} units {settings.units}")
         return redirect(url_for('show_jobs'))
     return render_template('settings.html', title='settings', settings = settings, form=form)
 
