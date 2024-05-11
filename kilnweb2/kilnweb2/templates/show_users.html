@@ -12,15 +12,15 @@
       <h2><a href="{{ url_for('show_jobs') }}">KilnWeb Users</a></h2>
       <div align="right">
         {% if current_user.is_anonymous %}
-	  <a href="{{ url_for('login') }}">Login</a> <a href="{{
-		   url_for('register') }}">Register</a> {% else %} <big>{{
-					  current_user.username }}</big> <a
-					  href="{{ url_for('show_jobs')
-						}}">Show Jobs</a> {% if
-						   current_user.is_admin %}
-            <a href="{{ url_for('show_users') }}">Show Users</a>
+	  <button type="button" onclick="window.location.href='{{ url_for('login') }}'">Login</button> 
+	  <button type="button" onclick="window.location.href='{{url_for('register') }}'">Register</button> 
+	{% else %} 
+	  <big>{{current_user.username }}</big> 
+          <button type="button" onclick="window.location.href='{{ url_for('show_jobs')}}'">Show Jobs</button> 
+	  {% if current_user.is_admin %}
+            <button type="button" onclickk="window.location.href='{{ url_for('show_users') }}'>Show Users</button>
           {% endif %}
-          <a href="{{ url_for('logout') }}">Logout</a>
+          <button type="button" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
         {% endif %}
       </div>
       <div class=metanav>
@@ -60,7 +60,7 @@
                   {% endif %}
               </div>
               <div class="col-xs-1"><input type="submit" value="Update"></div>
-              <div class="col-xs-1"><a href="{{ url_for('delete_user', user_id = user.id) }}">Delete</a></div>
+              <div class="col-xs-1"><button type="button" onclick="window.location.href='{{ url_for('delete_user', user_id = user.id) }}'">Delete</button></div>
           </form>
     </div>
   {% endfor %}

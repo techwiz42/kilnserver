@@ -35,16 +35,16 @@
   <hr/>
   <div align="right">
     {% if current_user.is_anonymous %}
-      <a href="{{ url_for('login') }}">Login</a>&nbsp;
-      <a href="{{ url_for('register') }}">Register</a>
+      <button type="button" onclick="window.location.href='{{ url_for('login') }}'">Login</button>&nbsp;
+      <button type="button" onclick="window.location.href='{{ url_for('register') }}'">Register</button>
     {% else %}
     <big>{{ current_user.username }}</big>&nbsp;
-      <a href="{{ url_for('start_job', job_id = job.id) }}">Start Job</a>&nbsp;
-      <a href="{{ url_for('show_jobs') }}">Show Jobs</a>&nbsp;
+      <button type="button" onclick="window.location.href='{{ url_for('start_job', job_id = job.id) }}'">Start Job</button>&nbsp;
+      <button type="button" onclick="window.location.href='{{ url_for('show_jobs') }}'">Show Jobs</button>&nbsp;
       {% if current_user.is_admin %}
-        <a href="{{ url_for('show_users') }}">Show Users</a>&nbsp;
+        <button type="button" onclick="window.location.href='{{ url_for('show_users') }}'">Show Users</button>&nbsp;
       {% endif %}
-      <a href="{{ url_for('logout') }}">Logout</a>
+      <button type="button" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
     {% endif %}
   </div>
   <div class=metanav>

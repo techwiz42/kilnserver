@@ -23,19 +23,19 @@
 	<h1 align="center"><a href="{{ url_for('login') }}">KilnWeb</a></h1>
 
   <div style="inline;float:left;">
-	  <a href="{{ url_for('settings') }}">Settings</a>
+	  &nbsp;<button type="button" onclick="window.location.href='{{ url_for('settings') }}'">Settings</button>
   </div>
   <div style="inline;float:right">
     	{% if current_user.is_anonymous %}
-      		<a href="{{ url_for('login') }}">Login</a>&nbsp;
-      		<a href="{{ url_for('register') }}">Register</a>&nbsp;
+      		<button type="button" onclick="window.location.href='{{ url_for('login') }}'">Login</button>&nbsp;
+      		<button type="button" onclick="window.location.href='{{ url_for('register') }}'">Register</button>&nbsp;
     	{% else %}
-	<a href="{{ url_for('show_user') }}"> {{ current_user.username }}</a>&nbsp;
-      		<a href="{{ url_for('show_jobs') }}">Show Jobs</a>&nbsp;
+	        <button type="button" onclick="window.location.href='{{ url_for('show_user') }}'"> {{ current_user.username }}</button>&nbsp;
+      		<button type="button" onclick="window.location.href='{{ url_for('show_jobs') }}'">Show Jobs</button>&nbsp;
       		{% if current_user.is_admin %}
-        		<a href="{{ url_for('show_users') }}">Show Users</a>&nbsp;
+        		<button type="button" onclick="window.location.href='{{ url_for('show_users') }}'">Show Users</button>&nbsp;
       		{% endif %}
-      		<a href="{{ url_for('logout') }}">Logout</a>&nbsp;
+      		<button type="button" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>&nbsp;
     	{% endif %}
   </div>
   <div class=metanav>

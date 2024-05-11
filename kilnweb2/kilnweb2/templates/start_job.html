@@ -12,9 +12,9 @@ Ensure that the kiln is clear of flammable materials!
 <input type="submit" value="Start Job" class="start"/>
 </form>
 {% else %}
-	<a href="{{ url_for('stop_job', job_id=job.id) }}">Stop Job</a>&nbsp;
-	<a href="{{ url_for('pause_job', job_id=job.id) }}">Pause</a>&nbsp;
-	<a href="{{ url_for('resume_job', job_id=job.id) }}">Resume</a>&nbsp;
+	<button type="button" onclick="window.location.href='{{ url_for('stop_job', job_id=job.id) }}'">Stop Job</button>&nbsp;
+	<button type="button" onclick="window.location.href='{{ url_for('pause_job', job_id=job.id) }}'">Pause</button>&nbsp;
+	<button type="button" onclick="window.location.href='{{ url_for('resume_job', job_id=job.id) }}'">Resume</button>&nbsp;
 
 
 
