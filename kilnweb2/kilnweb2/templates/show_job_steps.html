@@ -26,19 +26,22 @@
 
     </script>
     <style>
-        a {font-size: large; text-decoration: none; }
+        a {font-size: large; font-weight: bold; text-decoration: none; }
+	button { font-size: large; font-weight: bold; }
     </style>
 {% endblock %}
 {% block body %}
 <div class="container">
   <div class="h1" align="center"><a href="{{ url_for('show_jobs') }}">KilnWeb</a></div>
   <hr/>
-  <div align="right">
+  <div style="inline; float: left; ">
+	  &nbsp;<button type="button" onclick="window.location.href='{{ url_for('settings') }}'">Settings</button>
+  </div>
+  <div style="inline; float: right; ">
     {% if current_user.is_anonymous %}
       <button type="button" onclick="window.location.href='{{ url_for('login') }}'">Login</button>&nbsp;
       <button type="button" onclick="window.location.href='{{ url_for('register') }}'">Register</button>
     {% else %}
-    <big>{{ current_user.username }}</big>&nbsp;
       <button type="button" onclick="window.location.href='{{ url_for('start_job', job_id = job.id) }}'">Start Job</button>&nbsp;
       <button type="button" onclick="window.location.href='{{ url_for('show_jobs') }}'">Show Jobs</button>&nbsp;
       {% if current_user.is_admin %}
@@ -47,17 +50,19 @@
       <button type="button" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
     {% endif %}
   </div>
+  <p/>
   <div class=metanav>
   </div>
   {% for message in get_flashed_messages() %}
     <div class='flash alert alert-danger'>{{ message }}</div>
   {% endfor %}
-  <div class="h2">Job: {{ job.name }} Run State: {{ run_state }} Temp: {{ tmeas }}&deg;</div>
+  <br/><p>
+  <div class="h2">Job: {{ job.name }} Run State: {{ run_state }}, Temp: {{ tmeas }}&deg;</div>
   <div class="textarea">{{ job.comment }}</div>
     <form action="{{ url_for('update_job_steps', job_id=job.id) }}" method="post">
       <div class="vertical-center">
       <div class="col-md-10 col-md-offset-1"> <!-- offset jumbotron on page -->
-      <div class="jumbotron" align="left">
+      <div class="jumbotron" align="left" style="font-size:large;">
         <div class="row">
           <div class="col-xs-3"><b>Target &deg;</b></div>
           <div class="col-xs-3"><b>Rate &deg;/hr</b></div>
